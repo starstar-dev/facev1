@@ -205,6 +205,7 @@ class CLIPFACENet(nn.Module):
         self.use_mcloss = False
         self.use_fce = False
         self.use_mfmp = False
+        self.use_coen_lite = False
     
     def get_cls_feat_mfmp(self, featR, featN):
         """
@@ -274,10 +275,10 @@ class CLIPFACENet(nn.Module):
                 score_N_label = self.classifier_N_label(bn_N_label)
                 
                 return ([score_R], [cls_R]), ([score_N], [cls_N]), ([score_T], [cls_T]), \
-                       cls_R_mfmp, score_R_label, cls_N_mfmp, score_N_label
+                       cls_R_mfmp, score_R_label, cls_N_mfmp, score_N_label, None
             
             return ([score_R], [cls_R]), ([score_N], [cls_N]), ([score_T], [cls_T]), \
-                   None, None, None, None
+                   None, None, None, None, None
         else:
             bn_R = self.bottleneck_R(cls_R)
             bn_N = self.bottleneck_N(cls_N)

@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from utils.meter import AverageMeter
 from utils.metrics import R1_mAP_eval, R1_mAP
 from torch.cuda import amp
+from model.coen_lite import compute_modality_quality, quality_gate
 import torch.distributed as dist
 
 
@@ -39,6 +40,8 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
     device = "cuda"
     if device:
         model.to(local_rank)
+    if hasattr(loss_fn, "circle_loss_fn") and loss_fn.circle_loss_fn is not None:
+        loss_fn.circle_loss_fn.to(local_rank)
         if torch.cuda.device_count() > 1 and cfg.MODEL.DIST_TRAIN:
             print('Using {} GPUs'.format(torch.cuda.device_count()))
             model = nn.DataParallel(model)
@@ -53,8 +56,12 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
     start_time = time.time()
     
     epochs = cfg.SOLVER.MAX_EPOCHS
+    accum_steps = cfg.SOLVER.GRAD_ACCUM_STEPS if hasattr(cfg.SOLVER, 'GRAD_ACCUM_STEPS') else 1
+
     for epoch in range(1, epochs + 1):
         model.train()
+        optimizer.zero_grad()
+        optimizer_center.zero_grad()
         loss_meter.reset()
         acc_meter.reset()
         acc_meter1.reset()
@@ -63,8 +70,6 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
         evaluator.reset()
 
         for n_iter, (img1, img2, img3, vid, target_cam, _, flare_label) in enumerate(train_loader):
-            optimizer.zero_grad()
-            optimizer_center.zero_grad()
             img1 = img1.to(device)
             img2 = img2.to(device)
             img3 = img3.to(device)
@@ -88,11 +93,29 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
 
                 loss = loss1 + loss2 + loss3
 
+                # CoEN-lite: dynamic quality gating based on image statistics
+                coen_qR = 1.0
+                coen_qN = 1.0
+                coen_gR = 1.0
+                coen_gN = 1.0
+                if model.use_coen_lite:
+                    coen_qR, coen_qN = compute_modality_quality(img1, img2)
+                    coen_gR = quality_gate(coen_qR)
+                    coen_gN = quality_gate(coen_qN)
+                    coen_g_pair = (coen_gR + coen_gN) / 2.0
+                    loss1 = loss1 * coen_gR
+                    loss2 = loss2 * coen_gN
+                    loss = loss1 + loss2 + loss3  # recalculate with gated losses
+
                 if model.use_mfmp and scoreR_forlabel is not None:
                     kl_loss = 0.8 * KL_loss(scoreR_forlabel, scoreN_forlabel)
+                    if model.use_coen_lite:
+                        kl_loss = kl_loss * coen_g_pair
                     loss += kl_loss
                 if model.use_mcloss:
                     mcloss = MC_loss(mode1[0][0], mode2[0][0], mode3[0][0])
+                    if model.use_coen_lite:
+                        mcloss = mcloss * coen_g_pair
                     loss += mcloss
                 if model.use_fce and fce_feats is not None:
                     bn_R, bn_N, bn_T = fce_feats
@@ -113,17 +136,21 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode3[0][i], mode2[0][i])
                     loss += part_align
 
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            scaler.step(optimizer)
-            scaler.update()
-
-            if 'center' in cfg.MODEL.METRIC_LOSS_TYPE:
-                for param in center_criterion.parameters():
-                    param.grad.data *= (1. / cfg.SOLVER.CENTER_LOSS_WEIGHT)
-                scaler.step(optimizer_center)
+            scaler.scale(loss / accum_steps).backward()
+            if (n_iter + 1) % accum_steps == 0:
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
+                scaler.step(optimizer)
                 scaler.update()
+
+                if 'center' in cfg.MODEL.METRIC_LOSS_TYPE:
+                    for param in center_criterion.parameters():
+                        param.grad.data *= (1. / cfg.SOLVER.CENTER_LOSS_WEIGHT)
+                    scaler.step(optimizer_center)
+                    scaler.update()
+
+                optimizer.zero_grad()
+                optimizer_center.zero_grad()
 
             if isinstance(mode1[0][0], list):
                 acc = (mode1[0][0].max(1)[1] == target).float().mean()
@@ -141,8 +168,8 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
             torch.cuda.synchronize()
 
             if (n_iter + 1) % log_period == 0:
-                logger.info("Epoch[{}] Iteration[{}/{}] Loss: {:.3f}, Acc: {:.3f},Acc1: {:.3f},Acc2: {:.3f}, Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
-                    .format(epoch, (n_iter + 1), len(train_loader),
+                logger.info("Epoch[{}] Iteration[{}/{}] CoEN(qR={:.2f},qN={:.2f}) Loss: {:.3f}, Acc: {:.3f},Acc1: {:.3f},Acc2: {:.3f}, Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
+                    .format(epoch, (n_iter + 1), len(train_loader), coen_qR, coen_qN,
                             loss_meter.avg, acc_meter.avg, acc_meter1.avg, acc_meter2.avg,
                             scheduler._get_lr(epoch)[0], kl_loss, mcloss,
                             loss1, loss2, loss3, part_loss, part_align, loss, fce_loss))

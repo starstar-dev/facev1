@@ -113,7 +113,8 @@ from torchvision.transforms.functional import to_tensor
 class ImageDataset(Dataset):
     """Image Person ReID Dataset"""
 
-    def __init__(self, dataset, transform=None):
+    def __init__(self, dataset, transform=None, modality_dropout=0.0):
+        self.modality_dropout = modality_dropout
         self.dataset = dataset
         self.transform = transform
         
@@ -160,6 +161,15 @@ class ImageDataset(Dataset):
         img2 = imgs[1]
         img3 = imgs[2]
         exposure_label = self.get_exposure_fake_label(img1,img2,img3)
+        
+        # Modality dropout: randomly zero RGB or NIR to simulate flare loss
+        import random
+        if self.modality_dropout > 0 and random.random() < self.modality_dropout:
+            from PIL import Image
+            if random.random() < 0.5:
+                img1 = Image.new("RGB", img1.size, (0, 0, 0))
+            else:
+                img2 = Image.new("RGB", img2.size, (0, 0, 0))
         if self.transform is not None:
             img1 = self.transform(img1)
             img2 = self.transform(img2)

@@ -5,6 +5,7 @@ from torch.utils.data import DataLoader
 from .bases import ImageDataset
 # from timm.data.random_erasing import RandomErasing
 from .sampler import RandomIdentitySampler
+from .flare_balanced_sampler import FlareBalancedSampler
 # from .dukemtmcreid import DukeMTMCreID
 # from .market1501 import Market1501
 # from .msmt17 import MSMT17
@@ -153,7 +154,7 @@ def val_collate_fn(batch):
 
     return torch.stack(img1, dim=0), torch.stack(img2, dim=0), torch.stack(img3, dim=0), pids, camids, camids_batch,viewids, img_paths,flare_label
  
-def make_dataloader(cfg):
+def make_dataloader(cfg, use_flare_sampler=False, modality_dropout=0.0):
     train_transforms = T.Compose([
             T.Resize(cfg.INPUT.SIZE_TRAIN, interpolation=3),
             T.RandomHorizontalFlip(p=cfg.INPUT.PROB),
@@ -175,7 +176,7 @@ def make_dataloader(cfg):
     dataset = __factory[cfg.DATASETS.NAMES](root=cfg.DATASETS.ROOT_DIR)
 
 
-    train_set = ImageDataset(dataset.train, train_transforms)
+    train_set = ImageDataset(dataset.train, train_transforms, modality_dropout=modality_dropout)
     train_set_normal = ImageDataset(dataset.train, val_transforms)
     num_classes = dataset.num_train_pids
     cam_num = dataset.num_train_cams
@@ -184,7 +185,7 @@ def make_dataloader(cfg):
         if cfg.MODEL.DIST_TRAIN:
             print('DIST_TRAIN START')
             mini_batch_size = cfg.SOLVER.IMS_PER_BATCH // dist.get_world_size()
-            data_sampler = RandomIdentitySampler_DDP(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE)
+            data_sampler = RandomIdentitySampler_DDP(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE)  # Flare-balanced not supported in DDP
             batch_sampler = torch.utils.data.sampler.BatchSampler(data_sampler, mini_batch_size, True)
             train_loader = torch.utils.data.DataLoader(
                 train_set,
@@ -196,7 +197,7 @@ def make_dataloader(cfg):
         else:
             train_loader = DataLoader(
                 train_set, batch_size=cfg.SOLVER.IMS_PER_BATCH,
-                sampler=RandomIdentitySampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
+                sampler=FlareBalancedSampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE) if use_flare_sampler else RandomIdentitySampler(dataset.train, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE),
                 num_workers=num_workers, collate_fn=train_collate_fn
             )
     elif cfg.DATALOADER.SAMPLER == 'softmax':
