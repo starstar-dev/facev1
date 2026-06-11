@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from utils.meter import AverageMeter
 from utils.metrics import R1_mAP_eval, R1_mAP
 from torch.cuda import amp
-from model.coen_lite import compute_modality_quality, quality_gate
+from model.coen_lite import quality_gate
 import torch.distributed as dist
 
 
@@ -93,19 +93,23 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
 
                 loss = loss1 + loss2 + loss3
 
-                # CoEN-lite: dynamic quality gating based on image statistics
-                coen_qR = 1.0
-                coen_qN = 1.0
-                coen_gR = 1.0
-                coen_gN = 1.0
+                # CoEN-lite: dynamic quality gating + feature repair
+                # Quality scores are computed by the model (also used for fusion repair)
                 if model.use_coen_lite:
-                    coen_qR, coen_qN = compute_modality_quality(img1, img2)
+                    coen_qR = model._coen_qR
+                    coen_qN = model._coen_qN
                     coen_gR = quality_gate(coen_qR)
                     coen_gN = quality_gate(coen_qN)
                     coen_g_pair = (coen_gR + coen_gN) / 2.0
                     loss1 = loss1 * coen_gR
                     loss2 = loss2 * coen_gN
-                    loss = loss1 + loss2 + loss3  # recalculate with gated losses
+                    loss = loss1 + loss2 + loss3
+                else:
+                    coen_qR = 1.0
+                    coen_qN = 1.0
+                    coen_gR = 1.0
+                    coen_gN = 1.0
+                    coen_g_pair = 1.0
 
                 if model.use_mfmp and scoreR_forlabel is not None:
                     kl_loss = 0.8 * KL_loss(scoreR_forlabel, scoreN_forlabel)

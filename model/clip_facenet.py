@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import CLIPVisionModel, CLIPVisionConfig
+from model.coen_lite import compute_per_sample_quality
 
 
 def weights_init_kaiming(m):
@@ -60,13 +61,29 @@ class CrossModalFusion(nn.Module):
         
         self.apply(weights_init_kaiming)
     
-    def forward(self, feat_query, feat_key):
+    def forward(self, feat_query, feat_key, quality=None):
+        """
+        Args:
+            feat_query: (B, N, D) patches from R or N (modality to repair)
+            feat_key:   (B, N, D) patches from TI (clean reference)
+            quality:    (B,) per-sample quality scores in [0,1], or None
+                        Low quality → more TI borrowing for repair.
+        """
         identity = feat_query
         q = self.norm_q(feat_query)
         k = self.norm_kv(feat_key)
         v = self.norm_kv(feat_key)
         attended, _ = self.cross_attn(q, k, v)
-        feat_query = identity + torch.tanh(self.gate_attn) * attended
+        
+        # Quality-aware gating:
+        # - quality=1.0 (clear):   borrow_factor=1.0, normal fusion
+        # - quality=0.2 (bad):     borrow_factor=1.8, 80% more TI repair
+        if quality is not None:
+            borrow_factor = (1.0 + (1.0 - quality)).view(-1, 1, 1)  # (B,1,1)
+        else:
+            borrow_factor = 1.0
+        
+        feat_query = identity + torch.tanh(self.gate_attn) * attended * borrow_factor
         identity2 = feat_query
         feat_query = identity2 + torch.tanh(self.gate_ffn) * self.ffn(self.norm_out(feat_query))
         return feat_query
@@ -246,8 +263,18 @@ class CLIPFACENet(nn.Module):
             featR_mfmp, featN_mfmp = featR, featN
         
         # 3. Cross-modal fusion: repair RGB and NI using TI
-        featR = self.fusion_R(featR, featT)
-        featN = self.fusion_N(featN, featT)
+        # Compute per-sample quality for feature-level repair
+        if self.use_coen_lite:
+            q_R = compute_per_sample_quality(x1)  # (B,)
+            q_N = compute_per_sample_quality(x2)
+            self._coen_qR = q_R.mean().item()
+            self._coen_qN = q_N.mean().item()
+        else:
+            q_R = None
+            q_N = None
+        
+        featR = self.fusion_R(featR, featT, q_R)
+        featN = self.fusion_N(featN, featT, q_N)
         
         # 4. Extract CLS tokens
         cls_R = featR[:, 0]  # (B, 768)
