@@ -1,0 +1,21 @@
+# Checkpoints (too large for git)
+*.pth
+*.ckpt
+*.pt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Backups
+*.bak
+*.bak_*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Misc
+*.npy

@@ -1,0 +1,591 @@
+2026-06-11 13:32:20,148 transreid.image_train INFO: Experiment B: v2 + flare-balanced sampler
+2026-06-11 13:32:20,148 transreid.image_train INFO: Flare sampler: True, Modality dropout: 0.0
+2026-06-11 13:32:34,766 transreid.image_train INFO: Epoch[1] Iteration[20/111] Loss: 22.001, Acc: 0.000,Acc1: 0.002,Acc2: 0.003, Base Lr: 1.66e-03,biloss:0.010,icloss:0.024,loss1:7.268, loss2:7.171, loss3:7.225, ploss:0.000,palign:0.000,total_loss:21.697,fceloss:0.0000
+2026-06-11 13:32:39,852 transreid.image_train INFO: Epoch[1] Iteration[40/111] Loss: 22.665, Acc: 0.000,Acc1: 0.002,Acc2: 0.003, Base Lr: 1.66e-03,biloss:0.010,icloss:0.025,loss1:7.429, loss2:10.962, loss3:7.375, ploss:0.000,palign:0.000,total_loss:25.800,fceloss:0.0000
+2026-06-11 13:32:44,998 transreid.image_train INFO: Epoch[1] Iteration[60/111] Loss: 24.018, Acc: 0.001,Acc1: 0.002,Acc2: 0.004, Base Lr: 1.66e-03,biloss:0.010,icloss:0.024,loss1:9.779, loss2:8.023, loss3:7.532, ploss:0.000,palign:0.000,total_loss:25.368,fceloss:0.0000
+2026-06-11 13:32:50,301 transreid.image_train INFO: Epoch[1] Iteration[80/111] Loss: 23.930, Acc: 0.000,Acc1: 0.002,Acc2: 0.003, Base Lr: 1.66e-03,biloss:0.010,icloss:0.024,loss1:8.431, loss2:7.391, loss3:7.153, ploss:0.000,palign:0.000,total_loss:23.009,fceloss:0.0000
+2026-06-11 13:32:55,270 transreid.image_train INFO: Epoch[1] Iteration[100/111] Loss: 23.746, Acc: 0.000,Acc1: 0.002,Acc2: 0.003, Base Lr: 1.66e-03,biloss:0.010,icloss:0.024,loss1:7.788, loss2:7.491, loss3:7.297, ploss:0.000,palign:0.000,total_loss:22.610,fceloss:0.0000
+2026-06-11 13:32:57,917 transreid.image_train INFO: Epoch 1 done. Time per batch: 0.271[s] Speed: 117.9[samples/s]
+2026-06-11 13:33:12,458 transreid.image_train INFO: Validation Results - Epoch: 1
+2026-06-11 13:33:12,459 transreid.image_train INFO: mAP: 20.4%
+2026-06-11 13:33:12,459 transreid.image_train INFO: CMC curve, Rank-1  :20.5%
+2026-06-11 13:33:12,459 transreid.image_train INFO: CMC curve, Rank-5  :34.5%
+2026-06-11 13:33:12,459 transreid.image_train INFO: CMC curve, Rank-10 :39.3%
+2026-06-11 13:33:13,316 transreid.image_train INFO: Best mAP: 20.4%
+2026-06-11 13:33:13,316 transreid.image_train INFO: Best Rank-1: 20.5%
+2026-06-11 13:33:13,317 transreid.image_train INFO: Best Rank-5: 34.5%
+2026-06-11 13:33:13,317 transreid.image_train INFO: Best Rank-10: 39.3%
+2026-06-11 13:33:19,119 transreid.image_train INFO: Epoch[2] Iteration[20/111] Loss: 22.036, Acc: 0.003,Acc1: 0.002,Acc2: 0.002, Base Lr: 3.25e-03,biloss:0.010,icloss:0.024,loss1:7.413, loss2:7.283, loss3:7.251, ploss:0.000,palign:0.000,total_loss:21.981,fceloss:0.0000
+2026-06-11 13:33:24,312 transreid.image_train INFO: Epoch[2] Iteration[40/111] Loss: 22.144, Acc: 0.002,Acc1: 0.002,Acc2: 0.001, Base Lr: 3.25e-03,biloss:0.010,icloss:0.024,loss1:7.274, loss2:7.261, loss3:7.795, ploss:0.000,palign:0.000,total_loss:22.363,fceloss:0.0000
+2026-06-11 13:33:29,482 transreid.image_train INFO: Epoch[2] Iteration[60/111] Loss: 22.380, Acc: 0.002,Acc1: 0.003,Acc2: 0.001, Base Lr: 3.25e-03,biloss:0.010,icloss:0.024,loss1:7.298, loss2:7.229, loss3:8.243, ploss:0.000,palign:0.000,total_loss:22.803,fceloss:0.0000
+2026-06-11 13:33:34,659 transreid.image_train INFO: Epoch[2] Iteration[80/111] Loss: 22.332, Acc: 0.002,Acc1: 0.004,Acc2: 0.001, Base Lr: 3.25e-03,biloss:0.009,icloss:0.024,loss1:7.272, loss2:7.237, loss3:7.595, ploss:0.000,palign:0.000,total_loss:22.138,fceloss:0.0000
+2026-06-11 13:33:39,819 transreid.image_train INFO: Epoch[2] Iteration[100/111] Loss: 22.321, Acc: 0.002,Acc1: 0.003,Acc2: 0.001, Base Lr: 3.25e-03,biloss:0.010,icloss:0.024,loss1:7.197, loss2:7.211, loss3:7.284, ploss:0.000,palign:0.000,total_loss:21.725,fceloss:0.0000
+2026-06-11 13:33:42,518 transreid.image_train INFO: Epoch 2 done. Time per batch: 0.677[s] Speed: 47.3[samples/s]
+2026-06-11 13:33:57,391 transreid.image_train INFO: Validation Results - Epoch: 2
+2026-06-11 13:33:57,392 transreid.image_train INFO: mAP: 19.6%
+2026-06-11 13:33:57,392 transreid.image_train INFO: CMC curve, Rank-1  :19.6%
+2026-06-11 13:33:57,392 transreid.image_train INFO: CMC curve, Rank-5  :33.5%
+2026-06-11 13:33:57,392 transreid.image_train INFO: CMC curve, Rank-10 :42.9%
+2026-06-11 13:33:57,392 transreid.image_train INFO: Best mAP: 20.4%
+2026-06-11 13:33:57,392 transreid.image_train INFO: Best Rank-1: 20.5%
+2026-06-11 13:33:57,392 transreid.image_train INFO: Best Rank-5: 34.5%
+2026-06-11 13:33:57,392 transreid.image_train INFO: Best Rank-10: 39.3%
+2026-06-11 13:34:02,003 transreid.image_train INFO: Epoch[3] Iteration[20/111] Loss: 21.673, Acc: 0.002,Acc1: 0.003,Acc2: 0.013, Base Lr: 4.83e-03,biloss:0.009,icloss:0.023,loss1:7.348, loss2:7.176, loss3:7.443, ploss:0.000,palign:0.000,total_loss:21.999,fceloss:0.0000
+2026-06-11 13:34:07,193 transreid.image_train INFO: Epoch[3] Iteration[40/111] Loss: 21.652, Acc: 0.011,Acc1: 0.009,Acc2: 0.010, Base Lr: 4.83e-03,biloss:0.009,icloss:0.024,loss1:7.156, loss2:7.151, loss3:7.222, ploss:0.000,palign:0.000,total_loss:21.562,fceloss:0.0000
+2026-06-11 13:34:12,378 transreid.image_train INFO: Epoch[3] Iteration[60/111] Loss: 21.613, Acc: 0.014,Acc1: 0.007,Acc2: 0.008, Base Lr: 4.83e-03,biloss:0.009,icloss:0.025,loss1:7.112, loss2:7.120, loss3:7.174, ploss:0.000,palign:0.000,total_loss:21.439,fceloss:0.0000
+2026-06-11 13:34:17,567 transreid.image_train INFO: Epoch[3] Iteration[80/111] Loss: 21.596, Acc: 0.014,Acc1: 0.010,Acc2: 0.009, Base Lr: 4.83e-03,biloss:0.008,icloss:0.026,loss1:7.168, loss2:7.113, loss3:7.167, ploss:0.000,palign:0.000,total_loss:21.483,fceloss:0.0000
+2026-06-11 13:34:22,756 transreid.image_train INFO: Epoch[3] Iteration[100/111] Loss: 21.588, Acc: 0.014,Acc1: 0.010,Acc2: 0.008, Base Lr: 4.83e-03,biloss:0.009,icloss:0.026,loss1:7.165, loss2:7.108, loss3:7.159, ploss:0.000,palign:0.000,total_loss:21.466,fceloss:0.0000
+2026-06-11 13:34:25,485 transreid.image_train INFO: Epoch 3 done. Time per batch: 1.067[s] Speed: 30.0[samples/s]
+2026-06-11 13:34:39,071 transreid.image_train INFO: Validation Results - Epoch: 3
+2026-06-11 13:34:39,071 transreid.image_train INFO: mAP: 20.6%
+2026-06-11 13:34:39,072 transreid.image_train INFO: CMC curve, Rank-1  :19.4%
+2026-06-11 13:34:39,072 transreid.image_train INFO: CMC curve, Rank-5  :35.4%
+2026-06-11 13:34:39,072 transreid.image_train INFO: CMC curve, Rank-10 :43.6%
+2026-06-11 13:34:39,952 transreid.image_train INFO: Best mAP: 20.6%
+2026-06-11 13:34:39,953 transreid.image_train INFO: Best Rank-1: 19.4%
+2026-06-11 13:34:39,953 transreid.image_train INFO: Best Rank-5: 35.4%
+2026-06-11 13:34:39,953 transreid.image_train INFO: Best Rank-10: 43.6%
+2026-06-11 13:34:44,590 transreid.image_train INFO: Epoch[4] Iteration[20/111] Loss: 21.396, Acc: 0.019,Acc1: 0.022,Acc2: 0.003, Base Lr: 6.42e-03,biloss:0.007,icloss:0.029,loss1:7.091, loss2:7.088, loss3:7.226, ploss:0.000,palign:0.000,total_loss:21.440,fceloss:0.0000
+2026-06-11 13:34:49,779 transreid.image_train INFO: Epoch[4] Iteration[40/111] Loss: 21.479, Acc: 0.025,Acc1: 0.025,Acc2: 0.005, Base Lr: 6.42e-03,biloss:0.007,icloss:0.033,loss1:7.046, loss2:7.056, loss3:7.128, ploss:0.000,palign:0.000,total_loss:21.270,fceloss:0.0000
+2026-06-11 13:34:54,969 transreid.image_train INFO: Epoch[4] Iteration[60/111] Loss: 21.419, Acc: 0.022,Acc1: 0.028,Acc2: 0.006, Base Lr: 6.42e-03,biloss:0.006,icloss:0.040,loss1:7.023, loss2:7.066, loss3:7.074, ploss:0.000,palign:0.000,total_loss:21.209,fceloss:0.0000
+2026-06-11 13:35:00,155 transreid.image_train INFO: Epoch[4] Iteration[80/111] Loss: 21.378, Acc: 0.025,Acc1: 0.030,Acc2: 0.010, Base Lr: 6.42e-03,biloss:0.005,icloss:0.041,loss1:6.970, loss2:7.067, loss3:7.091, ploss:0.000,palign:0.000,total_loss:21.175,fceloss:0.0000
+2026-06-11 13:35:05,342 transreid.image_train INFO: Epoch[4] Iteration[100/111] Loss: 21.349, Acc: 0.027,Acc1: 0.033,Acc2: 0.010, Base Lr: 6.42e-03,biloss:0.006,icloss:0.039,loss1:7.100, loss2:7.121, loss3:7.219, ploss:0.000,palign:0.000,total_loss:21.485,fceloss:0.0000
+2026-06-11 13:35:08,025 transreid.image_train INFO: Epoch 4 done. Time per batch: 1.454[s] Speed: 22.0[samples/s]
+2026-06-11 13:35:21,483 transreid.image_train INFO: Validation Results - Epoch: 4
+2026-06-11 13:35:21,483 transreid.image_train INFO: mAP: 25.1%
+2026-06-11 13:35:21,483 transreid.image_train INFO: CMC curve, Rank-1  :26.3%
+2026-06-11 13:35:21,483 transreid.image_train INFO: CMC curve, Rank-5  :42.9%
+2026-06-11 13:35:21,483 transreid.image_train INFO: CMC curve, Rank-10 :51.4%
+2026-06-11 13:35:23,357 transreid.image_train INFO: Best mAP: 25.1%
+2026-06-11 13:35:23,357 transreid.image_train INFO: Best Rank-1: 26.3%
+2026-06-11 13:35:23,357 transreid.image_train INFO: Best Rank-5: 42.9%
+2026-06-11 13:35:23,357 transreid.image_train INFO: Best Rank-10: 51.4%
+2026-06-11 13:35:28,340 transreid.image_train INFO: Epoch[5] Iteration[20/111] Loss: 20.973, Acc: 0.031,Acc1: 0.045,Acc2: 0.016, Base Lr: 7.98e-03,biloss:0.005,icloss:0.047,loss1:6.958, loss2:7.058, loss3:7.007, ploss:0.000,palign:0.000,total_loss:21.075,fceloss:0.0000
+2026-06-11 13:35:33,526 transreid.image_train INFO: Epoch[5] Iteration[40/111] Loss: 20.945, Acc: 0.040,Acc1: 0.056,Acc2: 0.020, Base Lr: 7.98e-03,biloss:0.004,icloss:0.062,loss1:6.447, loss2:6.976, loss3:6.653, ploss:0.000,palign:0.000,total_loss:20.141,fceloss:0.0000
+2026-06-11 13:35:38,715 transreid.image_train INFO: Epoch[5] Iteration[60/111] Loss: 20.916, Acc: 0.041,Acc1: 0.062,Acc2: 0.019, Base Lr: 7.98e-03,biloss:0.004,icloss:0.058,loss1:7.015, loss2:7.047, loss3:6.975, ploss:0.000,palign:0.000,total_loss:21.098,fceloss:0.0000
+2026-06-11 13:35:43,899 transreid.image_train INFO: Epoch[5] Iteration[80/111] Loss: 20.928, Acc: 0.036,Acc1: 0.059,Acc2: 0.017, Base Lr: 7.98e-03,biloss:0.003,icloss:0.060,loss1:6.608, loss2:6.990, loss3:6.639, ploss:0.000,palign:0.000,total_loss:20.300,fceloss:0.0000
+2026-06-11 13:35:49,085 transreid.image_train INFO: Epoch[5] Iteration[100/111] Loss: 20.913, Acc: 0.038,Acc1: 0.060,Acc2: 0.020, Base Lr: 7.98e-03,biloss:0.003,icloss:0.056,loss1:6.679, loss2:7.001, loss3:6.872, ploss:0.000,palign:0.000,total_loss:20.610,fceloss:0.0000
+2026-06-11 13:35:51,807 transreid.image_train INFO: Epoch 5 done. Time per batch: 1.852[s] Speed: 17.3[samples/s]
+2026-06-11 13:36:05,778 transreid.image_train INFO: Validation Results - Epoch: 5
+2026-06-11 13:36:05,778 transreid.image_train INFO: mAP: 26.6%
+2026-06-11 13:36:05,778 transreid.image_train INFO: CMC curve, Rank-1  :28.5%
+2026-06-11 13:36:05,778 transreid.image_train INFO: CMC curve, Rank-5  :44.1%
+2026-06-11 13:36:05,778 transreid.image_train INFO: CMC curve, Rank-10 :51.6%
+2026-06-11 13:36:06,745 transreid.image_train INFO: Best mAP: 26.6%
+2026-06-11 13:36:06,746 transreid.image_train INFO: Best Rank-1: 28.5%
+2026-06-11 13:36:06,746 transreid.image_train INFO: Best Rank-5: 44.1%
+2026-06-11 13:36:06,746 transreid.image_train INFO: Best Rank-10: 51.6%
+2026-06-11 13:36:11,620 transreid.image_train INFO: Epoch[6] Iteration[20/111] Loss: 20.500, Acc: 0.042,Acc1: 0.116,Acc2: 0.017, Base Lr: 7.97e-03,biloss:0.003,icloss:0.073,loss1:6.707, loss2:6.960, loss3:6.839, ploss:0.000,palign:0.000,total_loss:20.581,fceloss:0.0000
+2026-06-11 13:36:16,810 transreid.image_train INFO: Epoch[6] Iteration[40/111] Loss: 20.553, Acc: 0.044,Acc1: 0.105,Acc2: 0.016, Base Lr: 7.97e-03,biloss:0.002,icloss:0.069,loss1:6.516, loss2:6.941, loss3:6.667, ploss:0.000,palign:0.000,total_loss:20.195,fceloss:0.0000
+2026-06-11 13:36:22,000 transreid.image_train INFO: Epoch[6] Iteration[60/111] Loss: 20.493, Acc: 0.049,Acc1: 0.103,Acc2: 0.019, Base Lr: 7.97e-03,biloss:0.002,icloss:0.074,loss1:6.578, loss2:7.013, loss3:6.784, ploss:0.000,palign:0.000,total_loss:20.451,fceloss:0.0000
+2026-06-11 13:36:27,187 transreid.image_train INFO: Epoch[6] Iteration[80/111] Loss: 20.485, Acc: 0.045,Acc1: 0.106,Acc2: 0.022, Base Lr: 7.97e-03,biloss:0.002,icloss:0.072,loss1:6.700, loss2:7.021, loss3:6.904, ploss:0.000,palign:0.000,total_loss:20.699,fceloss:0.0000
+2026-06-11 13:36:32,370 transreid.image_train INFO: Epoch[6] Iteration[100/111] Loss: 20.460, Acc: 0.048,Acc1: 0.103,Acc2: 0.024, Base Lr: 7.97e-03,biloss:0.002,icloss:0.080,loss1:6.095, loss2:6.876, loss3:6.302, ploss:0.000,palign:0.000,total_loss:19.354,fceloss:0.0000
+2026-06-11 13:36:35,062 transreid.image_train INFO: Epoch 6 done. Time per batch: 2.245[s] Speed: 14.3[samples/s]
+2026-06-11 13:36:48,629 transreid.image_train INFO: Validation Results - Epoch: 6
+2026-06-11 13:36:48,629 transreid.image_train INFO: mAP: 31.0%
+2026-06-11 13:36:48,629 transreid.image_train INFO: CMC curve, Rank-1  :34.7%
+2026-06-11 13:36:48,629 transreid.image_train INFO: CMC curve, Rank-5  :50.5%
+2026-06-11 13:36:48,629 transreid.image_train INFO: CMC curve, Rank-10 :58.4%
+2026-06-11 13:36:50,323 transreid.image_train INFO: Best mAP: 31.0%
+2026-06-11 13:36:50,324 transreid.image_train INFO: Best Rank-1: 34.7%
+2026-06-11 13:36:50,324 transreid.image_train INFO: Best Rank-5: 50.5%
+2026-06-11 13:36:50,324 transreid.image_train INFO: Best Rank-10: 58.4%
+2026-06-11 13:36:55,257 transreid.image_train INFO: Epoch[7] Iteration[20/111] Loss: 20.233, Acc: 0.038,Acc1: 0.130,Acc2: 0.011, Base Lr: 7.96e-03,biloss:0.003,icloss:0.081,loss1:6.310, loss2:6.937, loss3:6.589, ploss:0.000,palign:0.000,total_loss:19.920,fceloss:0.0000
+2026-06-11 13:37:00,442 transreid.image_train INFO: Epoch[7] Iteration[40/111] Loss: 20.076, Acc: 0.049,Acc1: 0.143,Acc2: 0.026, Base Lr: 7.96e-03,biloss:0.002,icloss:0.100,loss1:6.171, loss2:6.857, loss3:6.433, ploss:0.000,palign:0.000,total_loss:19.564,fceloss:0.0000
+2026-06-11 13:37:05,793 transreid.image_train INFO: Epoch[7] Iteration[60/111] Loss: 20.102, Acc: 0.048,Acc1: 0.142,Acc2: 0.021, Base Lr: 7.96e-03,biloss:0.002,icloss:0.099,loss1:6.255, loss2:6.926, loss3:6.536, ploss:0.000,palign:0.000,total_loss:19.818,fceloss:0.0000
+2026-06-11 13:37:10,981 transreid.image_train INFO: Epoch[7] Iteration[80/111] Loss: 20.077, Acc: 0.053,Acc1: 0.142,Acc2: 0.021, Base Lr: 7.96e-03,biloss:0.002,icloss:0.083,loss1:6.467, loss2:6.926, loss3:6.556, ploss:0.000,palign:0.000,total_loss:20.034,fceloss:0.0000
+2026-06-11 13:37:16,053 transreid.image_train INFO: Epoch[7] Iteration[100/111] Loss: 20.052, Acc: 0.057,Acc1: 0.141,Acc2: 0.025, Base Lr: 7.96e-03,biloss:0.002,icloss:0.100,loss1:6.376, loss2:6.944, loss3:6.613, ploss:0.000,palign:0.000,total_loss:20.035,fceloss:0.0000
+2026-06-11 13:37:18,762 transreid.image_train INFO: Epoch 7 done. Time per batch: 2.643[s] Speed: 12.1[samples/s]
+2026-06-11 13:37:32,490 transreid.image_train INFO: Validation Results - Epoch: 7
+2026-06-11 13:37:32,491 transreid.image_train INFO: mAP: 32.9%
+2026-06-11 13:37:32,491 transreid.image_train INFO: CMC curve, Rank-1  :36.3%
+2026-06-11 13:37:32,491 transreid.image_train INFO: CMC curve, Rank-5  :52.0%
+2026-06-11 13:37:32,491 transreid.image_train INFO: CMC curve, Rank-10 :59.4%
+2026-06-11 13:37:34,182 transreid.image_train INFO: Best mAP: 32.9%
+2026-06-11 13:37:34,182 transreid.image_train INFO: Best Rank-1: 36.3%
+2026-06-11 13:37:34,182 transreid.image_train INFO: Best Rank-5: 52.0%
+2026-06-11 13:37:34,182 transreid.image_train INFO: Best Rank-10: 59.4%
+2026-06-11 13:37:39,452 transreid.image_train INFO: Epoch[8] Iteration[20/111] Loss: 19.834, Acc: 0.028,Acc1: 0.200,Acc2: 0.016, Base Lr: 7.94e-03,biloss:0.001,icloss:0.096,loss1:6.043, loss2:6.798, loss3:6.407, ploss:0.000,palign:0.000,total_loss:19.346,fceloss:0.0000
+2026-06-11 13:37:44,638 transreid.image_train INFO: Epoch[8] Iteration[40/111] Loss: 19.774, Acc: 0.040,Acc1: 0.177,Acc2: 0.020, Base Lr: 7.94e-03,biloss:0.002,icloss:0.098,loss1:6.034, loss2:6.905, loss3:6.494, ploss:0.000,palign:0.000,total_loss:19.533,fceloss:0.0000
+2026-06-11 13:37:49,825 transreid.image_train INFO: Epoch[8] Iteration[60/111] Loss: 19.766, Acc: 0.042,Acc1: 0.175,Acc2: 0.027, Base Lr: 7.94e-03,biloss:0.001,icloss:0.091,loss1:6.258, loss2:6.976, loss3:6.316, ploss:0.000,palign:0.000,total_loss:19.641,fceloss:0.0000
+2026-06-11 13:37:55,011 transreid.image_train INFO: Epoch[8] Iteration[80/111] Loss: 19.700, Acc: 0.059,Acc1: 0.182,Acc2: 0.037, Base Lr: 7.94e-03,biloss:0.002,icloss:0.099,loss1:6.036, loss2:6.859, loss3:6.060, ploss:0.000,palign:0.000,total_loss:19.055,fceloss:0.0000
+2026-06-11 13:38:00,197 transreid.image_train INFO: Epoch[8] Iteration[100/111] Loss: 19.698, Acc: 0.066,Acc1: 0.182,Acc2: 0.037, Base Lr: 7.94e-03,biloss:0.001,icloss:0.095,loss1:5.939, loss2:6.892, loss3:6.470, ploss:0.000,palign:0.000,total_loss:19.398,fceloss:0.0000
+2026-06-11 13:38:02,901 transreid.image_train INFO: Epoch 8 done. Time per batch: 3.044[s] Speed: 10.5[samples/s]
+2026-06-11 13:38:16,871 transreid.image_train INFO: Validation Results - Epoch: 8
+2026-06-11 13:38:16,872 transreid.image_train INFO: mAP: 35.9%
+2026-06-11 13:38:16,872 transreid.image_train INFO: CMC curve, Rank-1  :39.1%
+2026-06-11 13:38:16,872 transreid.image_train INFO: CMC curve, Rank-5  :56.0%
+2026-06-11 13:38:16,872 transreid.image_train INFO: CMC curve, Rank-10 :64.9%
+2026-06-11 13:38:18,749 transreid.image_train INFO: Best mAP: 35.9%
+2026-06-11 13:38:18,749 transreid.image_train INFO: Best Rank-1: 39.1%
+2026-06-11 13:38:18,749 transreid.image_train INFO: Best Rank-5: 56.0%
+2026-06-11 13:38:18,749 transreid.image_train INFO: Best Rank-10: 64.9%
+2026-06-11 13:38:24,494 transreid.image_train INFO: Epoch[9] Iteration[20/111] Loss: 19.611, Acc: 0.036,Acc1: 0.231,Acc2: 0.039, Base Lr: 7.93e-03,biloss:0.001,icloss:0.101,loss1:5.900, loss2:6.873, loss3:6.361, ploss:0.000,palign:0.000,total_loss:19.237,fceloss:0.0000
+2026-06-11 13:38:29,688 transreid.image_train INFO: Epoch[9] Iteration[40/111] Loss: 19.536, Acc: 0.044,Acc1: 0.213,Acc2: 0.027, Base Lr: 7.93e-03,biloss:0.001,icloss:0.098,loss1:5.927, loss2:6.688, loss3:6.153, ploss:0.000,palign:0.000,total_loss:18.867,fceloss:0.0000
+2026-06-11 13:38:34,878 transreid.image_train INFO: Epoch[9] Iteration[60/111] Loss: 19.492, Acc: 0.048,Acc1: 0.212,Acc2: 0.032, Base Lr: 7.93e-03,biloss:0.001,icloss:0.095,loss1:6.708, loss2:6.971, loss3:6.675, ploss:0.000,palign:0.000,total_loss:20.451,fceloss:0.0000
+2026-06-11 13:38:40,069 transreid.image_train INFO: Epoch[9] Iteration[80/111] Loss: 19.436, Acc: 0.059,Acc1: 0.221,Acc2: 0.036, Base Lr: 7.93e-03,biloss:0.001,icloss:0.109,loss1:6.103, loss2:6.875, loss3:6.635, ploss:0.000,palign:0.000,total_loss:19.723,fceloss:0.0000
+2026-06-11 13:38:45,254 transreid.image_train INFO: Epoch[9] Iteration[100/111] Loss: 19.332, Acc: 0.077,Acc1: 0.226,Acc2: 0.043, Base Lr: 7.93e-03,biloss:0.001,icloss:0.119,loss1:5.313, loss2:6.682, loss3:5.755, ploss:0.000,palign:0.000,total_loss:17.871,fceloss:0.0000
+2026-06-11 13:38:47,945 transreid.image_train INFO: Epoch 9 done. Time per batch: 3.453[s] Speed: 9.3[samples/s]
+2026-06-11 13:39:02,479 transreid.image_train INFO: Validation Results - Epoch: 9
+2026-06-11 13:39:02,479 transreid.image_train INFO: mAP: 39.9%
+2026-06-11 13:39:02,479 transreid.image_train INFO: CMC curve, Rank-1  :43.4%
+2026-06-11 13:39:02,479 transreid.image_train INFO: CMC curve, Rank-5  :58.2%
+2026-06-11 13:39:02,479 transreid.image_train INFO: CMC curve, Rank-10 :67.6%
+2026-06-11 13:39:04,318 transreid.image_train INFO: Best mAP: 39.9%
+2026-06-11 13:39:04,318 transreid.image_train INFO: Best Rank-1: 43.4%
+2026-06-11 13:39:04,318 transreid.image_train INFO: Best Rank-5: 58.2%
+2026-06-11 13:39:04,318 transreid.image_train INFO: Best Rank-10: 67.6%
+2026-06-11 13:39:10,590 transreid.image_train INFO: Epoch[10] Iteration[20/111] Loss: 19.071, Acc: 0.091,Acc1: 0.289,Acc2: 0.033, Base Lr: 7.91e-03,biloss:0.001,icloss:0.109,loss1:5.562, loss2:6.765, loss3:6.055, ploss:0.000,palign:0.000,total_loss:18.492,fceloss:0.0000
+2026-06-11 13:39:15,775 transreid.image_train INFO: Epoch[10] Iteration[40/111] Loss: 19.166, Acc: 0.085,Acc1: 0.253,Acc2: 0.035, Base Lr: 7.91e-03,biloss:0.001,icloss:0.110,loss1:5.911, loss2:6.769, loss3:6.250, ploss:0.000,palign:0.000,total_loss:19.041,fceloss:0.0000
+2026-06-11 13:39:20,968 transreid.image_train INFO: Epoch[10] Iteration[60/111] Loss: 19.018, Acc: 0.088,Acc1: 0.258,Acc2: 0.043, Base Lr: 7.91e-03,biloss:0.001,icloss:0.105,loss1:5.651, loss2:6.887, loss3:6.258, ploss:0.000,palign:0.000,total_loss:18.902,fceloss:0.0000
+2026-06-11 13:39:26,157 transreid.image_train INFO: Epoch[10] Iteration[80/111] Loss: 19.054, Acc: 0.091,Acc1: 0.255,Acc2: 0.044, Base Lr: 7.91e-03,biloss:0.001,icloss:0.116,loss1:6.072, loss2:6.814, loss3:6.220, ploss:0.000,palign:0.000,total_loss:19.224,fceloss:0.0000
+2026-06-11 13:39:31,331 transreid.image_train INFO: Epoch[10] Iteration[100/111] Loss: 19.005, Acc: 0.102,Acc1: 0.256,Acc2: 0.052, Base Lr: 7.91e-03,biloss:0.001,icloss:0.115,loss1:5.339, loss2:6.808, loss3:6.343, ploss:0.000,palign:0.000,total_loss:18.608,fceloss:0.0000
+2026-06-11 13:39:33,112 transreid.image_train INFO: Epoch 10 done. Time per batch: 3.899[s] Speed: 8.2[samples/s]
+2026-06-11 13:39:47,294 transreid.image_train INFO: Validation Results - Epoch: 10
+2026-06-11 13:39:47,294 transreid.image_train INFO: mAP: 40.1%
+2026-06-11 13:39:47,294 transreid.image_train INFO: CMC curve, Rank-1  :44.0%
+2026-06-11 13:39:47,294 transreid.image_train INFO: CMC curve, Rank-5  :58.9%
+2026-06-11 13:39:47,294 transreid.image_train INFO: CMC curve, Rank-10 :68.3%
+2026-06-11 13:39:48,987 transreid.image_train INFO: Best mAP: 40.1%
+2026-06-11 13:39:48,987 transreid.image_train INFO: Best Rank-1: 44.0%
+2026-06-11 13:39:48,987 transreid.image_train INFO: Best Rank-5: 58.9%
+2026-06-11 13:39:48,987 transreid.image_train INFO: Best Rank-10: 68.3%
+2026-06-11 13:39:55,314 transreid.image_train INFO: Epoch[11] Iteration[20/111] Loss: 18.970, Acc: 0.070,Acc1: 0.280,Acc2: 0.038, Base Lr: 7.89e-03,biloss:0.001,icloss:0.130,loss1:5.645, loss2:6.720, loss3:5.948, ploss:0.000,palign:0.000,total_loss:18.444,fceloss:0.0000
+2026-06-11 13:40:00,497 transreid.image_train INFO: Epoch[11] Iteration[40/111] Loss: 19.005, Acc: 0.058,Acc1: 0.267,Acc2: 0.042, Base Lr: 7.89e-03,biloss:0.002,icloss:0.106,loss1:6.540, loss2:7.043, loss3:6.611, ploss:0.000,palign:0.000,total_loss:20.302,fceloss:0.0000
+2026-06-11 13:40:05,683 transreid.image_train INFO: Epoch[11] Iteration[60/111] Loss: 18.896, Acc: 0.077,Acc1: 0.267,Acc2: 0.045, Base Lr: 7.89e-03,biloss:0.001,icloss:0.109,loss1:6.147, loss2:6.970, loss3:6.401, ploss:0.000,palign:0.000,total_loss:19.628,fceloss:0.0000
+2026-06-11 13:40:10,876 transreid.image_train INFO: Epoch[11] Iteration[80/111] Loss: 18.860, Acc: 0.085,Acc1: 0.280,Acc2: 0.051, Base Lr: 7.89e-03,biloss:0.002,icloss:0.112,loss1:6.023, loss2:6.993, loss3:6.566, ploss:0.000,palign:0.000,total_loss:19.697,fceloss:0.0000
+2026-06-11 13:40:15,395 transreid.image_train INFO: Epoch[11] Iteration[100/111] Loss: 18.777, Acc: 0.096,Acc1: 0.291,Acc2: 0.057, Base Lr: 7.89e-03,biloss:0.001,icloss:0.137,loss1:5.450, loss2:6.665, loss3:5.849, ploss:0.000,palign:0.000,total_loss:18.102,fceloss:0.0000
+2026-06-11 13:40:17,747 transreid.image_train INFO: Epoch 11 done. Time per batch: 4.309[s] Speed: 7.4[samples/s]
+2026-06-11 13:40:30,562 transreid.image_train INFO: Validation Results - Epoch: 11
+2026-06-11 13:40:30,562 transreid.image_train INFO: mAP: 44.0%
+2026-06-11 13:40:30,562 transreid.image_train INFO: CMC curve, Rank-1  :48.6%
+2026-06-11 13:40:30,562 transreid.image_train INFO: CMC curve, Rank-5  :62.8%
+2026-06-11 13:40:30,562 transreid.image_train INFO: CMC curve, Rank-10 :70.8%
+2026-06-11 13:40:32,263 transreid.image_train INFO: Best mAP: 44.0%
+2026-06-11 13:40:32,263 transreid.image_train INFO: Best Rank-1: 48.6%
+2026-06-11 13:40:32,263 transreid.image_train INFO: Best Rank-5: 62.8%
+2026-06-11 13:40:32,264 transreid.image_train INFO: Best Rank-10: 70.8%
+2026-06-11 13:40:38,502 transreid.image_train INFO: Epoch[12] Iteration[20/111] Loss: 18.532, Acc: 0.094,Acc1: 0.309,Acc2: 0.052, Base Lr: 7.87e-03,biloss:0.001,icloss:0.138,loss1:5.304, loss2:6.455, loss3:5.562, ploss:0.000,palign:0.000,total_loss:17.461,fceloss:0.0000
+2026-06-11 13:40:43,689 transreid.image_train INFO: Epoch[12] Iteration[40/111] Loss: 18.486, Acc: 0.087,Acc1: 0.323,Acc2: 0.045, Base Lr: 7.87e-03,biloss:0.001,icloss:0.127,loss1:5.329, loss2:6.436, loss3:5.615, ploss:0.000,palign:0.000,total_loss:17.508,fceloss:0.0000
+2026-06-11 13:40:48,874 transreid.image_train INFO: Epoch[12] Iteration[60/111] Loss: 18.470, Acc: 0.102,Acc1: 0.315,Acc2: 0.050, Base Lr: 7.87e-03,biloss:0.001,icloss:0.128,loss1:6.247, loss2:7.183, loss3:6.759, ploss:0.000,palign:0.000,total_loss:20.319,fceloss:0.0000
+2026-06-11 13:40:54,062 transreid.image_train INFO: Epoch[12] Iteration[80/111] Loss: 18.594, Acc: 0.101,Acc1: 0.299,Acc2: 0.051, Base Lr: 7.87e-03,biloss:0.001,icloss:0.131,loss1:5.247, loss2:6.559, loss3:6.034, ploss:0.000,palign:0.000,total_loss:17.972,fceloss:0.0000
+2026-06-11 13:40:58,580 transreid.image_train INFO: Epoch[12] Iteration[100/111] Loss: 18.518, Acc: 0.119,Acc1: 0.313,Acc2: 0.063, Base Lr: 7.87e-03,biloss:0.001,icloss:0.140,loss1:5.507, loss2:6.619, loss3:5.922, ploss:0.000,palign:0.000,total_loss:18.190,fceloss:0.0000
+2026-06-11 13:41:01,105 transreid.image_train INFO: Epoch 12 done. Time per batch: 4.664[s] Speed: 6.9[samples/s]
+2026-06-11 13:41:13,745 transreid.image_train INFO: Validation Results - Epoch: 12
+2026-06-11 13:41:13,746 transreid.image_train INFO: mAP: 45.3%
+2026-06-11 13:41:13,746 transreid.image_train INFO: CMC curve, Rank-1  :49.8%
+2026-06-11 13:41:13,746 transreid.image_train INFO: CMC curve, Rank-5  :63.3%
+2026-06-11 13:41:13,746 transreid.image_train INFO: CMC curve, Rank-10 :71.2%
+2026-06-11 13:41:15,429 transreid.image_train INFO: Best mAP: 45.3%
+2026-06-11 13:41:15,430 transreid.image_train INFO: Best Rank-1: 49.8%
+2026-06-11 13:41:15,430 transreid.image_train INFO: Best Rank-5: 63.3%
+2026-06-11 13:41:15,430 transreid.image_train INFO: Best Rank-10: 71.2%
+2026-06-11 13:41:21,818 transreid.image_train INFO: Epoch[13] Iteration[20/111] Loss: 18.216, Acc: 0.094,Acc1: 0.347,Acc2: 0.044, Base Lr: 7.85e-03,biloss:0.001,icloss:0.141,loss1:5.660, loss2:6.519, loss3:6.076, ploss:0.000,palign:0.000,total_loss:18.397,fceloss:0.0000
+2026-06-11 13:41:27,006 transreid.image_train INFO: Epoch[13] Iteration[40/111] Loss: 18.370, Acc: 0.084,Acc1: 0.343,Acc2: 0.052, Base Lr: 7.85e-03,biloss:0.001,icloss:0.126,loss1:5.392, loss2:6.348, loss3:5.804, ploss:0.000,palign:0.000,total_loss:17.672,fceloss:0.0000
+2026-06-11 13:41:32,201 transreid.image_train INFO: Epoch[13] Iteration[60/111] Loss: 18.380, Acc: 0.094,Acc1: 0.332,Acc2: 0.060, Base Lr: 7.85e-03,biloss:0.001,icloss:0.122,loss1:5.572, loss2:6.838, loss3:6.236, ploss:0.000,palign:0.000,total_loss:18.769,fceloss:0.0000
+2026-06-11 13:41:37,420 transreid.image_train INFO: Epoch[13] Iteration[80/111] Loss: 18.369, Acc: 0.103,Acc1: 0.328,Acc2: 0.062, Base Lr: 7.85e-03,biloss:0.001,icloss:0.127,loss1:5.237, loss2:6.656, loss3:6.008, ploss:0.000,palign:0.000,total_loss:18.030,fceloss:0.0000
+2026-06-11 13:41:42,135 transreid.image_train INFO: Epoch[13] Iteration[100/111] Loss: 18.299, Acc: 0.129,Acc1: 0.339,Acc2: 0.071, Base Lr: 7.85e-03,biloss:0.001,icloss:0.144,loss1:5.276, loss2:6.566, loss3:5.736, ploss:0.000,palign:0.000,total_loss:17.724,fceloss:0.0000
+2026-06-11 13:41:44,456 transreid.image_train INFO: Epoch 13 done. Time per batch: 5.058[s] Speed: 6.3[samples/s]
+2026-06-11 13:41:57,352 transreid.image_train INFO: Validation Results - Epoch: 13
+2026-06-11 13:41:57,352 transreid.image_train INFO: mAP: 47.4%
+2026-06-11 13:41:57,352 transreid.image_train INFO: CMC curve, Rank-1  :51.2%
+2026-06-11 13:41:57,352 transreid.image_train INFO: CMC curve, Rank-5  :65.1%
+2026-06-11 13:41:57,352 transreid.image_train INFO: CMC curve, Rank-10 :72.8%
+2026-06-11 13:41:59,080 transreid.image_train INFO: Best mAP: 47.4%
+2026-06-11 13:41:59,080 transreid.image_train INFO: Best Rank-1: 51.2%
+2026-06-11 13:41:59,080 transreid.image_train INFO: Best Rank-5: 65.1%
+2026-06-11 13:41:59,080 transreid.image_train INFO: Best Rank-10: 72.8%
+2026-06-11 13:42:05,328 transreid.image_train INFO: Epoch[14] Iteration[20/111] Loss: 18.453, Acc: 0.066,Acc1: 0.352,Acc2: 0.072, Base Lr: 7.83e-03,biloss:0.001,icloss:0.141,loss1:5.235, loss2:6.425, loss3:6.013, ploss:0.000,palign:0.000,total_loss:17.816,fceloss:0.0000
+2026-06-11 13:42:10,514 transreid.image_train INFO: Epoch[14] Iteration[40/111] Loss: 18.215, Acc: 0.089,Acc1: 0.373,Acc2: 0.073, Base Lr: 7.83e-03,biloss:0.001,icloss:0.123,loss1:5.725, loss2:6.521, loss3:6.204, ploss:0.000,palign:0.000,total_loss:18.574,fceloss:0.0000
+2026-06-11 13:42:15,700 transreid.image_train INFO: Epoch[14] Iteration[60/111] Loss: 18.179, Acc: 0.104,Acc1: 0.373,Acc2: 0.070, Base Lr: 7.83e-03,biloss:0.002,icloss:0.132,loss1:5.521, loss2:6.487, loss3:5.724, ploss:0.000,palign:0.000,total_loss:17.866,fceloss:0.0000
+2026-06-11 13:42:20,892 transreid.image_train INFO: Epoch[14] Iteration[80/111] Loss: 18.148, Acc: 0.111,Acc1: 0.382,Acc2: 0.071, Base Lr: 7.83e-03,biloss:0.001,icloss:0.137,loss1:4.710, loss2:6.387, loss3:5.430, ploss:0.000,palign:0.000,total_loss:16.664,fceloss:0.0000
+2026-06-11 13:42:25,612 transreid.image_train INFO: Epoch[14] Iteration[100/111] Loss: 18.080, Acc: 0.130,Acc1: 0.388,Acc2: 0.081, Base Lr: 7.83e-03,biloss:0.001,icloss:0.165,loss1:4.785, loss2:6.259, loss3:5.594, ploss:0.000,palign:0.000,total_loss:16.805,fceloss:0.0000
+2026-06-11 13:42:27,924 transreid.image_train INFO: Epoch 14 done. Time per batch: 5.453[s] Speed: 5.9[samples/s]
+2026-06-11 13:42:40,988 transreid.image_train INFO: Validation Results - Epoch: 14
+2026-06-11 13:42:40,988 transreid.image_train INFO: mAP: 47.2%
+2026-06-11 13:42:40,989 transreid.image_train INFO: CMC curve, Rank-1  :51.2%
+2026-06-11 13:42:40,989 transreid.image_train INFO: CMC curve, Rank-5  :66.0%
+2026-06-11 13:42:40,989 transreid.image_train INFO: CMC curve, Rank-10 :72.8%
+2026-06-11 13:42:40,989 transreid.image_train INFO: Best mAP: 47.4%
+2026-06-11 13:42:40,989 transreid.image_train INFO: Best Rank-1: 51.2%
+2026-06-11 13:42:40,989 transreid.image_train INFO: Best Rank-5: 65.1%
+2026-06-11 13:42:40,989 transreid.image_train INFO: Best Rank-10: 72.8%
+2026-06-11 13:42:47,339 transreid.image_train INFO: Epoch[15] Iteration[20/111] Loss: 18.099, Acc: 0.080,Acc1: 0.388,Acc2: 0.050, Base Lr: 7.80e-03,biloss:0.001,icloss:0.135,loss1:5.542, loss2:6.716, loss3:6.101, ploss:0.000,palign:0.000,total_loss:18.494,fceloss:0.0000
+2026-06-11 13:42:52,529 transreid.image_train INFO: Epoch[15] Iteration[40/111] Loss: 17.945, Acc: 0.100,Acc1: 0.401,Acc2: 0.070, Base Lr: 7.80e-03,biloss:0.001,icloss:0.131,loss1:5.904, loss2:6.615, loss3:6.108, ploss:0.000,palign:0.000,total_loss:18.759,fceloss:0.0000
+2026-06-11 13:42:57,725 transreid.image_train INFO: Epoch[15] Iteration[60/111] Loss: 17.770, Acc: 0.130,Acc1: 0.422,Acc2: 0.083, Base Lr: 7.80e-03,biloss:0.001,icloss:0.150,loss1:4.579, loss2:6.570, loss3:5.763, ploss:0.000,palign:0.000,total_loss:17.063,fceloss:0.0000
+2026-06-11 13:43:02,914 transreid.image_train INFO: Epoch[15] Iteration[80/111] Loss: 17.795, Acc: 0.134,Acc1: 0.411,Acc2: 0.078, Base Lr: 7.80e-03,biloss:0.001,icloss:0.145,loss1:5.594, loss2:6.785, loss3:6.563, ploss:0.000,palign:0.000,total_loss:19.088,fceloss:0.0000
+2026-06-11 13:43:08,095 transreid.image_train INFO: Epoch[15] Iteration[100/111] Loss: 17.811, Acc: 0.146,Acc1: 0.415,Acc2: 0.082, Base Lr: 7.80e-03,biloss:0.001,icloss:0.141,loss1:5.334, loss2:6.530, loss3:5.857, ploss:0.000,palign:0.000,total_loss:17.864,fceloss:0.0000
+2026-06-11 13:43:10,550 transreid.image_train INFO: Epoch 15 done. Time per batch: 5.841[s] Speed: 5.5[samples/s]
+2026-06-11 13:43:25,297 transreid.image_train INFO: Validation Results - Epoch: 15
+2026-06-11 13:43:25,297 transreid.image_train INFO: mAP: 48.7%
+2026-06-11 13:43:25,297 transreid.image_train INFO: CMC curve, Rank-1  :53.4%
+2026-06-11 13:43:25,297 transreid.image_train INFO: CMC curve, Rank-5  :65.5%
+2026-06-11 13:43:25,297 transreid.image_train INFO: CMC curve, Rank-10 :73.1%
+2026-06-11 13:43:27,036 transreid.image_train INFO: Best mAP: 48.7%
+2026-06-11 13:43:27,036 transreid.image_train INFO: Best Rank-1: 53.4%
+2026-06-11 13:43:27,036 transreid.image_train INFO: Best Rank-5: 65.5%
+2026-06-11 13:43:27,036 transreid.image_train INFO: Best Rank-10: 73.1%
+2026-06-11 13:43:33,382 transreid.image_train INFO: Epoch[16] Iteration[20/111] Loss: 17.525, Acc: 0.163,Acc1: 0.459,Acc2: 0.106, Base Lr: 7.78e-03,biloss:0.001,icloss:0.134,loss1:5.439, loss2:6.616, loss3:5.893, ploss:0.000,palign:0.000,total_loss:18.084,fceloss:0.0000
+2026-06-11 13:43:38,567 transreid.image_train INFO: Epoch[16] Iteration[40/111] Loss: 17.571, Acc: 0.133,Acc1: 0.421,Acc2: 0.080, Base Lr: 7.78e-03,biloss:0.001,icloss:0.169,loss1:5.097, loss2:6.328, loss3:5.750, ploss:0.000,palign:0.000,total_loss:17.345,fceloss:0.0000
+2026-06-11 13:43:43,752 transreid.image_train INFO: Epoch[16] Iteration[60/111] Loss: 17.646, Acc: 0.131,Acc1: 0.422,Acc2: 0.076, Base Lr: 7.78e-03,biloss:0.001,icloss:0.141,loss1:5.434, loss2:6.364, loss3:5.892, ploss:0.000,palign:0.000,total_loss:17.832,fceloss:0.0000
+2026-06-11 13:43:48,935 transreid.image_train INFO: Epoch[16] Iteration[80/111] Loss: 17.666, Acc: 0.150,Acc1: 0.437,Acc2: 0.085, Base Lr: 7.78e-03,biloss:0.001,icloss:0.173,loss1:5.357, loss2:6.286, loss3:5.504, ploss:0.000,palign:0.000,total_loss:17.321,fceloss:0.0000
+2026-06-11 13:43:53,966 transreid.image_train INFO: Epoch[16] Iteration[100/111] Loss: 17.541, Acc: 0.163,Acc1: 0.430,Acc2: 0.089, Base Lr: 7.78e-03,biloss:0.001,icloss:0.179,loss1:5.390, loss2:6.337, loss3:5.121, ploss:0.000,palign:0.000,total_loss:17.029,fceloss:0.0000
+2026-06-11 13:43:55,841 transreid.image_train INFO: Epoch 16 done. Time per batch: 6.252[s] Speed: 5.1[samples/s]
+2026-06-11 13:44:09,252 transreid.image_train INFO: Validation Results - Epoch: 16
+2026-06-11 13:44:09,252 transreid.image_train INFO: mAP: 50.1%
+2026-06-11 13:44:09,252 transreid.image_train INFO: CMC curve, Rank-1  :55.2%
+2026-06-11 13:44:09,252 transreid.image_train INFO: CMC curve, Rank-5  :68.3%
+2026-06-11 13:44:09,252 transreid.image_train INFO: CMC curve, Rank-10 :74.6%
+2026-06-11 13:44:11,133 transreid.image_train INFO: Best mAP: 50.1%
+2026-06-11 13:44:11,134 transreid.image_train INFO: Best Rank-1: 55.2%
+2026-06-11 13:44:11,134 transreid.image_train INFO: Best Rank-5: 68.3%
+2026-06-11 13:44:11,134 transreid.image_train INFO: Best Rank-10: 74.6%
+2026-06-11 13:44:17,535 transreid.image_train INFO: Epoch[17] Iteration[20/111] Loss: 17.633, Acc: 0.152,Acc1: 0.459,Acc2: 0.056, Base Lr: 7.75e-03,biloss:0.001,icloss:0.168,loss1:4.850, loss2:6.101, loss3:5.272, ploss:0.000,palign:0.000,total_loss:16.392,fceloss:0.0000
+2026-06-11 13:44:22,721 transreid.image_train INFO: Epoch[17] Iteration[40/111] Loss: 17.503, Acc: 0.149,Acc1: 0.477,Acc2: 0.081, Base Lr: 7.75e-03,biloss:0.001,icloss:0.154,loss1:4.802, loss2:6.029, loss3:5.259, ploss:0.000,palign:0.000,total_loss:16.245,fceloss:0.0000
+2026-06-11 13:44:27,906 transreid.image_train INFO: Epoch[17] Iteration[60/111] Loss: 17.614, Acc: 0.141,Acc1: 0.456,Acc2: 0.084, Base Lr: 7.75e-03,biloss:0.001,icloss:0.149,loss1:5.636, loss2:6.577, loss3:6.158, ploss:0.000,palign:0.000,total_loss:18.521,fceloss:0.0000
+2026-06-11 13:44:33,093 transreid.image_train INFO: Epoch[17] Iteration[80/111] Loss: 17.504, Acc: 0.159,Acc1: 0.469,Acc2: 0.088, Base Lr: 7.75e-03,biloss:0.001,icloss:0.173,loss1:4.790, loss2:6.699, loss3:5.577, ploss:0.000,palign:0.000,total_loss:17.240,fceloss:0.0000
+2026-06-11 13:44:38,014 transreid.image_train INFO: Epoch[17] Iteration[100/111] Loss: 17.431, Acc: 0.174,Acc1: 0.470,Acc2: 0.093, Base Lr: 7.75e-03,biloss:0.001,icloss:0.161,loss1:4.871, loss2:6.443, loss3:5.905, ploss:0.000,palign:0.000,total_loss:17.380,fceloss:0.0000
+2026-06-11 13:44:40,064 transreid.image_train INFO: Epoch 17 done. Time per batch: 6.655[s] Speed: 4.8[samples/s]
+2026-06-11 13:44:53,352 transreid.image_train INFO: Validation Results - Epoch: 17
+2026-06-11 13:44:53,352 transreid.image_train INFO: mAP: 51.1%
+2026-06-11 13:44:53,352 transreid.image_train INFO: CMC curve, Rank-1  :55.9%
+2026-06-11 13:44:53,352 transreid.image_train INFO: CMC curve, Rank-5  :68.7%
+2026-06-11 13:44:53,352 transreid.image_train INFO: CMC curve, Rank-10 :76.5%
+2026-06-11 13:44:54,230 transreid.image_train INFO: Best mAP: 51.1%
+2026-06-11 13:44:54,230 transreid.image_train INFO: Best Rank-1: 55.9%
+2026-06-11 13:44:54,230 transreid.image_train INFO: Best Rank-5: 68.7%
+2026-06-11 13:44:54,230 transreid.image_train INFO: Best Rank-10: 76.5%
+2026-06-11 13:45:00,698 transreid.image_train INFO: Epoch[18] Iteration[20/111] Loss: 17.591, Acc: 0.130,Acc1: 0.463,Acc2: 0.094, Base Lr: 7.72e-03,biloss:0.001,icloss:0.146,loss1:5.281, loss2:6.290, loss3:5.918, ploss:0.000,palign:0.000,total_loss:17.636,fceloss:0.0000
+2026-06-11 13:45:05,881 transreid.image_train INFO: Epoch[18] Iteration[40/111] Loss: 17.537, Acc: 0.140,Acc1: 0.450,Acc2: 0.087, Base Lr: 7.72e-03,biloss:0.001,icloss:0.150,loss1:5.652, loss2:6.984, loss3:5.844, ploss:0.000,palign:0.000,total_loss:18.631,fceloss:0.0000
+2026-06-11 13:45:11,067 transreid.image_train INFO: Epoch[18] Iteration[60/111] Loss: 17.441, Acc: 0.151,Acc1: 0.475,Acc2: 0.090, Base Lr: 7.72e-03,biloss:0.001,icloss:0.162,loss1:4.628, loss2:6.111, loss3:5.478, ploss:0.000,palign:0.000,total_loss:16.380,fceloss:0.0000
+2026-06-11 13:45:16,251 transreid.image_train INFO: Epoch[18] Iteration[80/111] Loss: 17.355, Acc: 0.168,Acc1: 0.473,Acc2: 0.099, Base Lr: 7.72e-03,biloss:0.001,icloss:0.161,loss1:4.800, loss2:6.028, loss3:5.144, ploss:0.000,palign:0.000,total_loss:16.133,fceloss:0.0000
+2026-06-11 13:45:21,423 transreid.image_train INFO: Epoch[18] Iteration[100/111] Loss: 17.275, Acc: 0.178,Acc1: 0.480,Acc2: 0.108, Base Lr: 7.72e-03,biloss:0.001,icloss:0.184,loss1:4.328, loss2:6.163, loss3:5.381, ploss:0.000,palign:0.000,total_loss:16.058,fceloss:0.0000
+2026-06-11 13:45:23,345 transreid.image_train INFO: Epoch 18 done. Time per batch: 7.048[s] Speed: 4.5[samples/s]
+2026-06-11 13:45:37,479 transreid.image_train INFO: Validation Results - Epoch: 18
+2026-06-11 13:45:37,480 transreid.image_train INFO: mAP: 51.2%
+2026-06-11 13:45:37,480 transreid.image_train INFO: CMC curve, Rank-1  :55.2%
+2026-06-11 13:45:37,480 transreid.image_train INFO: CMC curve, Rank-5  :69.8%
+2026-06-11 13:45:37,480 transreid.image_train INFO: CMC curve, Rank-10 :75.8%
+2026-06-11 13:45:39,188 transreid.image_train INFO: Best mAP: 51.2%
+2026-06-11 13:45:39,188 transreid.image_train INFO: Best Rank-1: 55.2%
+2026-06-11 13:45:39,188 transreid.image_train INFO: Best Rank-5: 69.8%
+2026-06-11 13:45:39,188 transreid.image_train INFO: Best Rank-10: 75.8%
+2026-06-11 13:45:45,546 transreid.image_train INFO: Epoch[19] Iteration[20/111] Loss: 17.248, Acc: 0.167,Acc1: 0.469,Acc2: 0.097, Base Lr: 7.69e-03,biloss:0.001,icloss:0.165,loss1:6.209, loss2:6.536, loss3:6.386, ploss:0.000,palign:0.000,total_loss:19.297,fceloss:0.0000
+2026-06-11 13:45:50,732 transreid.image_train INFO: Epoch[19] Iteration[40/111] Loss: 17.146, Acc: 0.166,Acc1: 0.495,Acc2: 0.100, Base Lr: 7.69e-03,biloss:0.001,icloss:0.174,loss1:4.249, loss2:6.140, loss3:5.782, ploss:0.000,palign:0.000,total_loss:16.347,fceloss:0.0000
+2026-06-11 13:45:55,922 transreid.image_train INFO: Epoch[19] Iteration[60/111] Loss: 17.064, Acc: 0.171,Acc1: 0.478,Acc2: 0.094, Base Lr: 7.69e-03,biloss:0.001,icloss:0.173,loss1:5.265, loss2:6.048, loss3:5.916, ploss:0.000,palign:0.000,total_loss:17.403,fceloss:0.0000
+2026-06-11 13:46:01,058 transreid.image_train INFO: Epoch[19] Iteration[80/111] Loss: 17.019, Acc: 0.173,Acc1: 0.479,Acc2: 0.099, Base Lr: 7.69e-03,biloss:0.001,icloss:0.164,loss1:4.737, loss2:6.087, loss3:5.421, ploss:0.000,palign:0.000,total_loss:16.410,fceloss:0.0000
+2026-06-11 13:46:06,180 transreid.image_train INFO: Epoch[19] Iteration[100/111] Loss: 16.962, Acc: 0.196,Acc1: 0.487,Acc2: 0.112, Base Lr: 7.69e-03,biloss:0.001,icloss:0.203,loss1:4.464, loss2:6.235, loss3:5.370, ploss:0.000,palign:0.000,total_loss:16.274,fceloss:0.0000
+2026-06-11 13:46:08,511 transreid.image_train INFO: Epoch 19 done. Time per batch: 7.459[s] Speed: 4.3[samples/s]
+2026-06-11 13:46:23,078 transreid.image_train INFO: Validation Results - Epoch: 19
+2026-06-11 13:46:23,078 transreid.image_train INFO: mAP: 51.9%
+2026-06-11 13:46:23,078 transreid.image_train INFO: CMC curve, Rank-1  :55.0%
+2026-06-11 13:46:23,078 transreid.image_train INFO: CMC curve, Rank-5  :70.5%
+2026-06-11 13:46:23,078 transreid.image_train INFO: CMC curve, Rank-10 :76.5%
+2026-06-11 13:46:25,449 transreid.image_train INFO: Best mAP: 51.9%
+2026-06-11 13:46:25,449 transreid.image_train INFO: Best Rank-1: 55.0%
+2026-06-11 13:46:25,449 transreid.image_train INFO: Best Rank-5: 70.5%
+2026-06-11 13:46:25,449 transreid.image_train INFO: Best Rank-10: 76.5%
+2026-06-11 13:46:31,748 transreid.image_train INFO: Epoch[20] Iteration[20/111] Loss: 17.079, Acc: 0.189,Acc1: 0.538,Acc2: 0.113, Base Lr: 7.65e-03,biloss:0.001,icloss:0.182,loss1:4.928, loss2:6.175, loss3:5.892, ploss:0.000,palign:0.000,total_loss:17.179,fceloss:0.0000
+2026-06-11 13:46:36,932 transreid.image_train INFO: Epoch[20] Iteration[40/111] Loss: 17.104, Acc: 0.192,Acc1: 0.519,Acc2: 0.105, Base Lr: 7.65e-03,biloss:0.001,icloss:0.177,loss1:5.367, loss2:6.634, loss3:5.880, ploss:0.000,palign:0.000,total_loss:18.060,fceloss:0.0000
+2026-06-11 13:46:42,123 transreid.image_train INFO: Epoch[20] Iteration[60/111] Loss: 17.003, Acc: 0.200,Acc1: 0.524,Acc2: 0.105, Base Lr: 7.65e-03,biloss:0.001,icloss:0.177,loss1:5.322, loss2:6.515, loss3:5.763, ploss:0.000,palign:0.000,total_loss:17.777,fceloss:0.0000
+2026-06-11 13:46:47,311 transreid.image_train INFO: Epoch[20] Iteration[80/111] Loss: 16.859, Acc: 0.212,Acc1: 0.535,Acc2: 0.111, Base Lr: 7.65e-03,biloss:0.001,icloss:0.218,loss1:4.352, loss2:5.881, loss3:4.860, ploss:0.000,palign:0.000,total_loss:15.312,fceloss:0.0000
+2026-06-11 13:46:52,489 transreid.image_train INFO: Epoch[20] Iteration[100/111] Loss: 16.776, Acc: 0.220,Acc1: 0.539,Acc2: 0.115, Base Lr: 7.65e-03,biloss:0.001,icloss:0.172,loss1:4.995, loss2:6.217, loss3:5.971, ploss:0.000,palign:0.000,total_loss:17.356,fceloss:0.0000
+2026-06-11 13:46:54,824 transreid.image_train INFO: Epoch 20 done. Time per batch: 7.880[s] Speed: 4.1[samples/s]
+2026-06-11 13:47:09,438 transreid.image_train INFO: Validation Results - Epoch: 20
+2026-06-11 13:47:09,438 transreid.image_train INFO: mAP: 53.5%
+2026-06-11 13:47:09,438 transreid.image_train INFO: CMC curve, Rank-1  :58.9%
+2026-06-11 13:47:09,438 transreid.image_train INFO: CMC curve, Rank-5  :71.2%
+2026-06-11 13:47:09,438 transreid.image_train INFO: CMC curve, Rank-10 :76.3%
+2026-06-11 13:47:11,217 transreid.image_train INFO: Best mAP: 53.5%
+2026-06-11 13:47:11,217 transreid.image_train INFO: Best Rank-1: 58.9%
+2026-06-11 13:47:11,217 transreid.image_train INFO: Best Rank-5: 71.2%
+2026-06-11 13:47:11,217 transreid.image_train INFO: Best Rank-10: 76.3%
+2026-06-11 13:47:17,467 transreid.image_train INFO: Epoch[21] Iteration[20/111] Loss: 16.865, Acc: 0.169,Acc1: 0.602,Acc2: 0.116, Base Lr: 7.62e-03,biloss:0.001,icloss:0.203,loss1:4.992, loss2:5.931, loss3:5.311, ploss:0.000,palign:0.000,total_loss:16.438,fceloss:0.0000
+2026-06-11 13:47:22,651 transreid.image_train INFO: Epoch[21] Iteration[40/111] Loss: 16.699, Acc: 0.184,Acc1: 0.588,Acc2: 0.124, Base Lr: 7.62e-03,biloss:0.001,icloss:0.188,loss1:4.718, loss2:6.094, loss3:5.179, ploss:0.000,palign:0.000,total_loss:16.181,fceloss:0.0000
+2026-06-11 13:47:27,836 transreid.image_train INFO: Epoch[21] Iteration[60/111] Loss: 16.674, Acc: 0.198,Acc1: 0.568,Acc2: 0.129, Base Lr: 7.62e-03,biloss:0.001,icloss:0.177,loss1:4.791, loss2:6.053, loss3:5.714, ploss:0.000,palign:0.000,total_loss:16.736,fceloss:0.0000
+2026-06-11 13:47:33,024 transreid.image_train INFO: Epoch[21] Iteration[80/111] Loss: 16.581, Acc: 0.222,Acc1: 0.575,Acc2: 0.133, Base Lr: 7.62e-03,biloss:0.001,icloss:0.176,loss1:5.110, loss2:6.124, loss3:5.728, ploss:0.000,palign:0.000,total_loss:17.139,fceloss:0.0000
+2026-06-11 13:47:37,839 transreid.image_train INFO: Epoch[21] Iteration[100/111] Loss: 16.565, Acc: 0.233,Acc1: 0.571,Acc2: 0.130, Base Lr: 7.62e-03,biloss:0.001,icloss:0.206,loss1:4.703, loss2:6.173, loss3:5.478, ploss:0.000,palign:0.000,total_loss:16.560,fceloss:0.0000
+2026-06-11 13:47:39,984 transreid.image_train INFO: Epoch 21 done. Time per batch: 8.290[s] Speed: 3.9[samples/s]
+2026-06-11 13:47:53,689 transreid.image_train INFO: Validation Results - Epoch: 21
+2026-06-11 13:47:53,708 transreid.image_train INFO: mAP: 53.6%
+2026-06-11 13:47:53,708 transreid.image_train INFO: CMC curve, Rank-1  :57.7%
+2026-06-11 13:47:53,708 transreid.image_train INFO: CMC curve, Rank-5  :70.5%
+2026-06-11 13:47:53,708 transreid.image_train INFO: CMC curve, Rank-10 :76.9%
+2026-06-11 13:47:55,523 transreid.image_train INFO: Best mAP: 53.6%
+2026-06-11 13:47:55,524 transreid.image_train INFO: Best Rank-1: 57.7%
+2026-06-11 13:47:55,524 transreid.image_train INFO: Best Rank-5: 70.5%
+2026-06-11 13:47:55,524 transreid.image_train INFO: Best Rank-10: 76.9%
+2026-06-11 13:48:02,071 transreid.image_train INFO: Epoch[22] Iteration[20/111] Loss: 16.473, Acc: 0.214,Acc1: 0.619,Acc2: 0.142, Base Lr: 7.58e-03,biloss:0.001,icloss:0.174,loss1:4.539, loss2:5.975, loss3:5.110, ploss:0.000,palign:0.000,total_loss:15.800,fceloss:0.0000
+2026-06-11 13:48:07,264 transreid.image_train INFO: Epoch[22] Iteration[40/111] Loss: 16.639, Acc: 0.202,Acc1: 0.575,Acc2: 0.128, Base Lr: 7.58e-03,biloss:0.001,icloss:0.193,loss1:4.573, loss2:5.887, loss3:5.159, ploss:0.000,palign:0.000,total_loss:15.813,fceloss:0.0000
+2026-06-11 13:48:12,453 transreid.image_train INFO: Epoch[22] Iteration[60/111] Loss: 16.575, Acc: 0.232,Acc1: 0.597,Acc2: 0.134, Base Lr: 7.58e-03,biloss:0.001,icloss:0.245,loss1:4.154, loss2:5.648, loss3:5.143, ploss:0.000,palign:0.000,total_loss:15.191,fceloss:0.0000
+2026-06-11 13:48:17,631 transreid.image_train INFO: Epoch[22] Iteration[80/111] Loss: 16.457, Acc: 0.241,Acc1: 0.599,Acc2: 0.130, Base Lr: 7.58e-03,biloss:0.001,icloss:0.198,loss1:4.294, loss2:5.928, loss3:5.788, ploss:0.000,palign:0.000,total_loss:16.209,fceloss:0.0000
+2026-06-11 13:48:22,055 transreid.image_train INFO: Epoch[22] Iteration[100/111] Loss: 16.428, Acc: 0.247,Acc1: 0.592,Acc2: 0.134, Base Lr: 7.58e-03,biloss:0.001,icloss:0.236,loss1:3.669, loss2:5.658, loss3:5.059, ploss:0.000,palign:0.000,total_loss:14.623,fceloss:0.0000
+2026-06-11 13:48:25,039 transreid.image_train INFO: Epoch 22 done. Time per batch: 8.700[s] Speed: 3.7[samples/s]
+2026-06-11 13:48:38,552 transreid.image_train INFO: Validation Results - Epoch: 22
+2026-06-11 13:48:38,552 transreid.image_train INFO: mAP: 54.3%
+2026-06-11 13:48:38,552 transreid.image_train INFO: CMC curve, Rank-1  :58.7%
+2026-06-11 13:48:38,552 transreid.image_train INFO: CMC curve, Rank-5  :70.6%
+2026-06-11 13:48:38,552 transreid.image_train INFO: CMC curve, Rank-10 :75.3%
+2026-06-11 13:48:40,268 transreid.image_train INFO: Best mAP: 54.3%
+2026-06-11 13:48:40,268 transreid.image_train INFO: Best Rank-1: 58.7%
+2026-06-11 13:48:40,268 transreid.image_train INFO: Best Rank-5: 70.6%
+2026-06-11 13:48:40,268 transreid.image_train INFO: Best Rank-10: 75.3%
+2026-06-11 13:48:46,621 transreid.image_train INFO: Epoch[23] Iteration[20/111] Loss: 16.131, Acc: 0.252,Acc1: 0.644,Acc2: 0.150, Base Lr: 7.55e-03,biloss:0.001,icloss:0.232,loss1:4.242, loss2:5.800, loss3:5.576, ploss:0.000,palign:0.000,total_loss:15.851,fceloss:0.0000
+2026-06-11 13:48:51,811 transreid.image_train INFO: Epoch[23] Iteration[40/111] Loss: 16.374, Acc: 0.226,Acc1: 0.641,Acc2: 0.134, Base Lr: 7.55e-03,biloss:0.001,icloss:0.204,loss1:5.033, loss2:6.379, loss3:6.169, ploss:0.000,palign:0.000,total_loss:17.787,fceloss:0.0000
+2026-06-11 13:48:57,002 transreid.image_train INFO: Epoch[23] Iteration[60/111] Loss: 16.338, Acc: 0.215,Acc1: 0.626,Acc2: 0.129, Base Lr: 7.55e-03,biloss:0.001,icloss:0.216,loss1:5.009, loss2:6.066, loss3:5.514, ploss:0.000,palign:0.000,total_loss:16.806,fceloss:0.0000
+2026-06-11 13:49:01,460 transreid.image_train INFO: Epoch[23] Iteration[80/111] Loss: 16.360, Acc: 0.218,Acc1: 0.622,Acc2: 0.131, Base Lr: 7.55e-03,biloss:0.001,icloss:0.228,loss1:4.215, loss2:5.853, loss3:4.677, ploss:0.000,palign:0.000,total_loss:14.974,fceloss:0.0000
+2026-06-11 13:49:06,894 transreid.image_train INFO: Epoch[23] Iteration[100/111] Loss: 16.284, Acc: 0.236,Acc1: 0.622,Acc2: 0.147, Base Lr: 7.55e-03,biloss:0.001,icloss:0.264,loss1:3.814, loss2:5.635, loss3:4.817, ploss:0.000,palign:0.000,total_loss:14.532,fceloss:0.0000
+2026-06-11 13:49:09,908 transreid.image_train INFO: Epoch 23 done. Time per batch: 9.108[s] Speed: 3.5[samples/s]
+2026-06-11 13:49:23,199 transreid.image_train INFO: Validation Results - Epoch: 23
+2026-06-11 13:49:23,200 transreid.image_train INFO: mAP: 52.4%
+2026-06-11 13:49:23,200 transreid.image_train INFO: CMC curve, Rank-1  :58.5%
+2026-06-11 13:49:23,200 transreid.image_train INFO: CMC curve, Rank-5  :71.4%
+2026-06-11 13:49:23,200 transreid.image_train INFO: CMC curve, Rank-10 :76.5%
+2026-06-11 13:49:23,200 transreid.image_train INFO: Best mAP: 54.3%
+2026-06-11 13:49:23,200 transreid.image_train INFO: Best Rank-1: 58.7%
+2026-06-11 13:49:23,200 transreid.image_train INFO: Best Rank-5: 70.6%
+2026-06-11 13:49:23,200 transreid.image_train INFO: Best Rank-10: 75.3%
+2026-06-11 13:49:29,591 transreid.image_train INFO: Epoch[24] Iteration[20/111] Loss: 16.632, Acc: 0.205,Acc1: 0.603,Acc2: 0.120, Base Lr: 7.51e-03,biloss:0.001,icloss:0.203,loss1:3.813, loss2:5.828, loss3:5.024, ploss:0.000,palign:0.000,total_loss:14.869,fceloss:0.0000
+2026-06-11 13:49:34,783 transreid.image_train INFO: Epoch[24] Iteration[40/111] Loss: 16.472, Acc: 0.222,Acc1: 0.609,Acc2: 0.134, Base Lr: 7.51e-03,biloss:0.001,icloss:0.244,loss1:3.585, loss2:5.661, loss3:4.575, ploss:0.000,palign:0.000,total_loss:14.068,fceloss:0.0000
+2026-06-11 13:49:39,976 transreid.image_train INFO: Epoch[24] Iteration[60/111] Loss: 16.390, Acc: 0.237,Acc1: 0.616,Acc2: 0.139, Base Lr: 7.51e-03,biloss:0.001,icloss:0.199,loss1:5.072, loss2:6.159, loss3:6.125, ploss:0.000,palign:0.000,total_loss:17.556,fceloss:0.0000
+2026-06-11 13:49:44,429 transreid.image_train INFO: Epoch[24] Iteration[80/111] Loss: 16.304, Acc: 0.246,Acc1: 0.633,Acc2: 0.134, Base Lr: 7.51e-03,biloss:0.001,icloss:0.248,loss1:4.465, loss2:5.816, loss3:4.854, ploss:0.000,palign:0.000,total_loss:15.384,fceloss:0.0000
+2026-06-11 13:49:50,026 transreid.image_train INFO: Epoch[24] Iteration[100/111] Loss: 16.124, Acc: 0.271,Acc1: 0.654,Acc2: 0.144, Base Lr: 7.51e-03,biloss:0.001,icloss:0.231,loss1:3.901, loss2:5.861, loss3:4.929, ploss:0.000,palign:0.000,total_loss:14.923,fceloss:0.0000
+2026-06-11 13:49:53,004 transreid.image_train INFO: Epoch 24 done. Time per batch: 9.499[s] Speed: 3.4[samples/s]
+2026-06-11 13:50:06,206 transreid.image_train INFO: Validation Results - Epoch: 24
+2026-06-11 13:50:06,207 transreid.image_train INFO: mAP: 55.3%
+2026-06-11 13:50:06,207 transreid.image_train INFO: CMC curve, Rank-1  :60.7%
+2026-06-11 13:50:06,207 transreid.image_train INFO: CMC curve, Rank-5  :71.9%
+2026-06-11 13:50:06,207 transreid.image_train INFO: CMC curve, Rank-10 :77.0%
+2026-06-11 13:50:07,913 transreid.image_train INFO: Best mAP: 55.3%
+2026-06-11 13:50:07,913 transreid.image_train INFO: Best Rank-1: 60.7%
+2026-06-11 13:50:07,913 transreid.image_train INFO: Best Rank-5: 71.9%
+2026-06-11 13:50:07,913 transreid.image_train INFO: Best Rank-10: 77.0%
+2026-06-11 13:50:14,232 transreid.image_train INFO: Epoch[25] Iteration[20/111] Loss: 16.006, Acc: 0.216,Acc1: 0.664,Acc2: 0.161, Base Lr: 7.47e-03,biloss:0.001,icloss:0.238,loss1:4.184, loss2:5.714, loss3:5.151, ploss:0.000,palign:0.000,total_loss:15.288,fceloss:0.0000
+2026-06-11 13:50:19,403 transreid.image_train INFO: Epoch[25] Iteration[40/111] Loss: 15.999, Acc: 0.223,Acc1: 0.651,Acc2: 0.150, Base Lr: 7.47e-03,biloss:0.001,icloss:0.216,loss1:4.528, loss2:5.897, loss3:5.148, ploss:0.000,palign:0.000,total_loss:15.790,fceloss:0.0000
+2026-06-11 13:50:24,579 transreid.image_train INFO: Epoch[25] Iteration[60/111] Loss: 15.933, Acc: 0.244,Acc1: 0.674,Acc2: 0.158, Base Lr: 7.47e-03,biloss:0.001,icloss:0.238,loss1:4.573, loss2:5.857, loss3:5.066, ploss:0.000,palign:0.000,total_loss:15.734,fceloss:0.0000
+2026-06-11 13:50:29,112 transreid.image_train INFO: Epoch[25] Iteration[80/111] Loss: 15.955, Acc: 0.254,Acc1: 0.667,Acc2: 0.162, Base Lr: 7.47e-03,biloss:0.001,icloss:0.228,loss1:4.197, loss2:5.758, loss3:4.516, ploss:0.000,palign:0.000,total_loss:14.700,fceloss:0.0000
+2026-06-11 13:50:34,861 transreid.image_train INFO: Epoch[25] Iteration[100/111] Loss: 15.886, Acc: 0.276,Acc1: 0.665,Acc2: 0.163, Base Lr: 7.47e-03,biloss:0.001,icloss:0.224,loss1:4.446, loss2:6.113, loss3:5.319, ploss:0.000,palign:0.000,total_loss:16.102,fceloss:0.0000
+2026-06-11 13:50:37,866 transreid.image_train INFO: Epoch 25 done. Time per batch: 9.907[s] Speed: 3.2[samples/s]
+2026-06-11 13:50:51,251 transreid.image_train INFO: Validation Results - Epoch: 25
+2026-06-11 13:50:51,251 transreid.image_train INFO: mAP: 53.4%
+2026-06-11 13:50:51,251 transreid.image_train INFO: CMC curve, Rank-1  :58.9%
+2026-06-11 13:50:51,251 transreid.image_train INFO: CMC curve, Rank-5  :71.5%
+2026-06-11 13:50:51,251 transreid.image_train INFO: CMC curve, Rank-10 :77.4%
+2026-06-11 13:50:51,252 transreid.image_train INFO: Best mAP: 55.3%
+2026-06-11 13:50:51,252 transreid.image_train INFO: Best Rank-1: 60.7%
+2026-06-11 13:50:51,252 transreid.image_train INFO: Best Rank-5: 71.9%
+2026-06-11 13:50:51,252 transreid.image_train INFO: Best Rank-10: 77.0%
+2026-06-11 13:50:57,450 transreid.image_train INFO: Epoch[26] Iteration[20/111] Loss: 15.806, Acc: 0.252,Acc1: 0.697,Acc2: 0.175, Base Lr: 7.42e-03,biloss:0.001,icloss:0.212,loss1:4.438, loss2:5.884, loss3:5.498, ploss:0.000,palign:0.000,total_loss:16.034,fceloss:0.0000
+2026-06-11 13:51:02,643 transreid.image_train INFO: Epoch[26] Iteration[40/111] Loss: 15.912, Acc: 0.250,Acc1: 0.697,Acc2: 0.163, Base Lr: 7.42e-03,biloss:0.001,icloss:0.216,loss1:5.341, loss2:5.855, loss3:5.292, ploss:0.000,palign:0.000,total_loss:16.705,fceloss:0.0000
+2026-06-11 13:51:07,822 transreid.image_train INFO: Epoch[26] Iteration[60/111] Loss: 15.951, Acc: 0.255,Acc1: 0.697,Acc2: 0.163, Base Lr: 7.42e-03,biloss:0.001,icloss:0.274,loss1:3.906, loss2:5.623, loss3:4.660, ploss:0.000,palign:0.000,total_loss:14.464,fceloss:0.0000
+2026-06-11 13:51:12,174 transreid.image_train INFO: Epoch[26] Iteration[80/111] Loss: 15.765, Acc: 0.290,Acc1: 0.702,Acc2: 0.169, Base Lr: 7.42e-03,biloss:0.001,icloss:0.236,loss1:4.378, loss2:5.978, loss3:4.988, ploss:0.000,palign:0.000,total_loss:15.581,fceloss:0.0000
+2026-06-11 13:51:18,063 transreid.image_train INFO: Epoch[26] Iteration[100/111] Loss: 15.722, Acc: 0.299,Acc1: 0.700,Acc2: 0.169, Base Lr: 7.42e-03,biloss:0.001,icloss:0.284,loss1:3.719, loss2:5.487, loss3:4.617, ploss:0.000,palign:0.000,total_loss:14.107,fceloss:0.0000
+2026-06-11 13:51:21,063 transreid.image_train INFO: Epoch 26 done. Time per batch: 10.300[s] Speed: 3.1[samples/s]
+2026-06-11 13:51:34,401 transreid.image_train INFO: Validation Results - Epoch: 26
+2026-06-11 13:51:34,401 transreid.image_train INFO: mAP: 55.7%
+2026-06-11 13:51:34,401 transreid.image_train INFO: CMC curve, Rank-1  :60.9%
+2026-06-11 13:51:34,401 transreid.image_train INFO: CMC curve, Rank-5  :73.8%
+2026-06-11 13:51:34,401 transreid.image_train INFO: CMC curve, Rank-10 :77.2%
+2026-06-11 13:51:36,359 transreid.image_train INFO: Best mAP: 55.7%
+2026-06-11 13:51:36,359 transreid.image_train INFO: Best Rank-1: 60.9%
+2026-06-11 13:51:36,359 transreid.image_train INFO: Best Rank-5: 73.8%
+2026-06-11 13:51:36,360 transreid.image_train INFO: Best Rank-10: 77.2%
+2026-06-11 13:51:42,730 transreid.image_train INFO: Epoch[27] Iteration[20/111] Loss: 15.630, Acc: 0.241,Acc1: 0.711,Acc2: 0.163, Base Lr: 7.38e-03,biloss:0.001,icloss:0.214,loss1:4.836, loss2:5.859, loss3:5.648, ploss:0.000,palign:0.000,total_loss:16.558,fceloss:0.0000
+2026-06-11 13:51:47,914 transreid.image_train INFO: Epoch[27] Iteration[40/111] Loss: 15.631, Acc: 0.259,Acc1: 0.698,Acc2: 0.154, Base Lr: 7.38e-03,biloss:0.001,icloss:0.256,loss1:4.692, loss2:5.790, loss3:5.463, ploss:0.000,palign:0.000,total_loss:16.203,fceloss:0.0000
+2026-06-11 13:51:52,361 transreid.image_train INFO: Epoch[27] Iteration[60/111] Loss: 15.546, Acc: 0.268,Acc1: 0.714,Acc2: 0.169, Base Lr: 7.38e-03,biloss:0.001,icloss:0.257,loss1:4.159, loss2:5.611, loss3:5.153, ploss:0.000,palign:0.000,total_loss:15.180,fceloss:0.0000
+2026-06-11 13:51:57,947 transreid.image_train INFO: Epoch[27] Iteration[80/111] Loss: 15.558, Acc: 0.290,Acc1: 0.710,Acc2: 0.170, Base Lr: 7.38e-03,biloss:0.001,icloss:0.235,loss1:4.265, loss2:5.715, loss3:5.202, ploss:0.000,palign:0.000,total_loss:15.418,fceloss:0.0000
+2026-06-11 13:52:03,849 transreid.image_train INFO: Epoch[27] Iteration[100/111] Loss: 15.517, Acc: 0.306,Acc1: 0.716,Acc2: 0.172, Base Lr: 7.38e-03,biloss:0.001,icloss:0.281,loss1:3.768, loss2:5.604, loss3:5.420, ploss:0.000,palign:0.000,total_loss:15.074,fceloss:0.0000
+2026-06-11 13:52:05,941 transreid.image_train INFO: Epoch 27 done. Time per batch: 10.708[s] Speed: 3.0[samples/s]
+2026-06-11 13:52:19,716 transreid.image_train INFO: Validation Results - Epoch: 27
+2026-06-11 13:52:19,716 transreid.image_train INFO: mAP: 56.3%
+2026-06-11 13:52:19,717 transreid.image_train INFO: CMC curve, Rank-1  :63.0%
+2026-06-11 13:52:19,717 transreid.image_train INFO: CMC curve, Rank-5  :73.0%
+2026-06-11 13:52:19,717 transreid.image_train INFO: CMC curve, Rank-10 :76.9%
+2026-06-11 13:52:21,427 transreid.image_train INFO: Best mAP: 56.3%
+2026-06-11 13:52:21,427 transreid.image_train INFO: Best Rank-1: 63.0%
+2026-06-11 13:52:21,427 transreid.image_train INFO: Best Rank-5: 73.0%
+2026-06-11 13:52:21,427 transreid.image_train INFO: Best Rank-10: 76.9%
+2026-06-11 13:52:27,770 transreid.image_train INFO: Epoch[28] Iteration[20/111] Loss: 15.879, Acc: 0.245,Acc1: 0.734,Acc2: 0.181, Base Lr: 7.33e-03,biloss:0.001,icloss:0.245,loss1:4.536, loss2:5.718, loss3:5.359, ploss:0.000,palign:0.000,total_loss:15.859,fceloss:0.0000
+2026-06-11 13:52:32,948 transreid.image_train INFO: Epoch[28] Iteration[40/111] Loss: 15.586, Acc: 0.267,Acc1: 0.720,Acc2: 0.184, Base Lr: 7.33e-03,biloss:0.001,icloss:0.270,loss1:4.428, loss2:5.832, loss3:5.495, ploss:0.000,palign:0.000,total_loss:16.026,fceloss:0.0000
+2026-06-11 13:52:37,481 transreid.image_train INFO: Epoch[28] Iteration[60/111] Loss: 15.555, Acc: 0.268,Acc1: 0.724,Acc2: 0.173, Base Lr: 7.33e-03,biloss:0.001,icloss:0.231,loss1:4.005, loss2:5.761, loss3:4.822, ploss:0.000,palign:0.000,total_loss:14.820,fceloss:0.0000
+2026-06-11 13:52:43,381 transreid.image_train INFO: Epoch[28] Iteration[80/111] Loss: 15.404, Acc: 0.297,Acc1: 0.736,Acc2: 0.187, Base Lr: 7.33e-03,biloss:0.001,icloss:0.264,loss1:3.979, loss2:5.641, loss3:4.906, ploss:0.000,palign:0.000,total_loss:14.791,fceloss:0.0000
+2026-06-11 13:52:48,109 transreid.image_train INFO: Epoch[28] Iteration[100/111] Loss: 15.317, Acc: 0.320,Acc1: 0.754,Acc2: 0.195, Base Lr: 7.33e-03,biloss:0.001,icloss:0.303,loss1:4.019, loss2:5.527, loss3:4.777, ploss:0.000,palign:0.000,total_loss:14.627,fceloss:0.0000
+2026-06-11 13:52:49,757 transreid.image_train INFO: Epoch 28 done. Time per batch: 11.106[s] Speed: 2.9[samples/s]
+2026-06-11 13:53:03,599 transreid.image_train INFO: Validation Results - Epoch: 28
+2026-06-11 13:53:03,599 transreid.image_train INFO: mAP: 55.4%
+2026-06-11 13:53:03,599 transreid.image_train INFO: CMC curve, Rank-1  :61.7%
+2026-06-11 13:53:03,599 transreid.image_train INFO: CMC curve, Rank-5  :71.7%
+2026-06-11 13:53:03,599 transreid.image_train INFO: CMC curve, Rank-10 :77.6%
+2026-06-11 13:53:03,599 transreid.image_train INFO: Best mAP: 56.3%
+2026-06-11 13:53:03,599 transreid.image_train INFO: Best Rank-1: 63.0%
+2026-06-11 13:53:03,599 transreid.image_train INFO: Best Rank-5: 73.0%
+2026-06-11 13:53:03,599 transreid.image_train INFO: Best Rank-10: 76.9%
+2026-06-11 13:53:09,975 transreid.image_train INFO: Epoch[29] Iteration[20/111] Loss: 15.474, Acc: 0.295,Acc1: 0.797,Acc2: 0.167, Base Lr: 7.29e-03,biloss:0.001,icloss:0.240,loss1:4.231, loss2:5.693, loss3:4.855, ploss:0.000,palign:0.000,total_loss:15.020,fceloss:0.0000
+2026-06-11 13:53:15,159 transreid.image_train INFO: Epoch[29] Iteration[40/111] Loss: 15.441, Acc: 0.280,Acc1: 0.756,Acc2: 0.181, Base Lr: 7.29e-03,biloss:0.001,icloss:0.232,loss1:4.250, loss2:5.836, loss3:5.319, ploss:0.000,palign:0.000,total_loss:15.638,fceloss:0.0000
+2026-06-11 13:53:19,528 transreid.image_train INFO: Epoch[29] Iteration[60/111] Loss: 15.375, Acc: 0.292,Acc1: 0.768,Acc2: 0.177, Base Lr: 7.29e-03,biloss:0.001,icloss:0.327,loss1:3.373, loss2:5.393, loss3:4.396, ploss:0.000,palign:0.000,total_loss:13.491,fceloss:0.0000
+2026-06-11 13:53:25,290 transreid.image_train INFO: Epoch[29] Iteration[80/111] Loss: 15.308, Acc: 0.305,Acc1: 0.758,Acc2: 0.179, Base Lr: 7.29e-03,biloss:0.001,icloss:0.263,loss1:3.510, loss2:5.617, loss3:5.035, ploss:0.000,palign:0.000,total_loss:14.426,fceloss:0.0000
+2026-06-11 13:53:31,194 transreid.image_train INFO: Epoch[29] Iteration[100/111] Loss: 15.235, Acc: 0.332,Acc1: 0.770,Acc2: 0.193, Base Lr: 7.29e-03,biloss:0.001,icloss:0.256,loss1:3.544, loss2:5.669, loss3:5.140, ploss:0.000,palign:0.000,total_loss:14.610,fceloss:0.0000
+2026-06-11 13:53:33,264 transreid.image_train INFO: Epoch 29 done. Time per batch: 11.502[s] Speed: 2.8[samples/s]
+2026-06-11 13:53:46,878 transreid.image_train INFO: Validation Results - Epoch: 29
+2026-06-11 13:53:46,878 transreid.image_train INFO: mAP: 56.7%
+2026-06-11 13:53:46,878 transreid.image_train INFO: CMC curve, Rank-1  :62.1%
+2026-06-11 13:53:46,878 transreid.image_train INFO: CMC curve, Rank-5  :72.1%
+2026-06-11 13:53:46,878 transreid.image_train INFO: CMC curve, Rank-10 :77.4%
+2026-06-11 13:53:48,612 transreid.image_train INFO: Best mAP: 56.7%
+2026-06-11 13:53:48,612 transreid.image_train INFO: Best Rank-1: 62.1%
+2026-06-11 13:53:48,612 transreid.image_train INFO: Best Rank-5: 72.1%
+2026-06-11 13:53:48,613 transreid.image_train INFO: Best Rank-10: 77.4%
+2026-06-11 13:53:54,867 transreid.image_train INFO: Epoch[30] Iteration[20/111] Loss: 15.074, Acc: 0.323,Acc1: 0.808,Acc2: 0.209, Base Lr: 7.24e-03,biloss:0.001,icloss:0.291,loss1:3.780, loss2:5.605, loss3:4.381, ploss:0.000,palign:0.000,total_loss:14.058,fceloss:0.0000
+2026-06-11 13:53:59,893 transreid.image_train INFO: Epoch[30] Iteration[40/111] Loss: 15.020, Acc: 0.346,Acc1: 0.788,Acc2: 0.223, Base Lr: 7.24e-03,biloss:0.001,icloss:0.261,loss1:4.529, loss2:5.777, loss3:5.040, ploss:0.000,palign:0.000,total_loss:15.607,fceloss:0.0000
+2026-06-11 13:54:04,699 transreid.image_train INFO: Epoch[30] Iteration[60/111] Loss: 15.080, Acc: 0.340,Acc1: 0.785,Acc2: 0.214, Base Lr: 7.24e-03,biloss:0.001,icloss:0.277,loss1:4.408, loss2:5.710, loss3:5.285, ploss:0.000,palign:0.000,total_loss:15.681,fceloss:0.0000
+2026-06-11 13:54:10,614 transreid.image_train INFO: Epoch[30] Iteration[80/111] Loss: 14.970, Acc: 0.365,Acc1: 0.800,Acc2: 0.220, Base Lr: 7.24e-03,biloss:0.001,icloss:0.298,loss1:3.328, loss2:5.452, loss3:4.328, ploss:0.000,palign:0.000,total_loss:13.407,fceloss:0.0000
+2026-06-11 13:54:15,096 transreid.image_train INFO: Epoch[30] Iteration[100/111] Loss: 14.935, Acc: 0.373,Acc1: 0.801,Acc2: 0.220, Base Lr: 7.24e-03,biloss:0.001,icloss:0.245,loss1:5.703, loss2:5.897, loss3:5.741, ploss:0.000,palign:0.000,total_loss:17.587,fceloss:0.0000
+2026-06-11 13:54:17,532 transreid.image_train INFO: Epoch 30 done. Time per batch: 11.904[s] Speed: 2.7[samples/s]
+2026-06-11 13:54:31,350 transreid.image_train INFO: Validation Results - Epoch: 30
+2026-06-11 13:54:31,350 transreid.image_train INFO: mAP: 56.4%
+2026-06-11 13:54:31,350 transreid.image_train INFO: CMC curve, Rank-1  :62.6%
+2026-06-11 13:54:31,350 transreid.image_train INFO: CMC curve, Rank-5  :73.3%
+2026-06-11 13:54:31,350 transreid.image_train INFO: CMC curve, Rank-10 :77.8%
+2026-06-11 13:54:31,350 transreid.image_train INFO: Best mAP: 56.7%
+2026-06-11 13:54:31,350 transreid.image_train INFO: Best Rank-1: 62.1%
+2026-06-11 13:54:31,350 transreid.image_train INFO: Best Rank-5: 72.1%
+2026-06-11 13:54:31,350 transreid.image_train INFO: Best Rank-10: 77.4%
+2026-06-11 13:54:37,726 transreid.image_train INFO: Epoch[31] Iteration[20/111] Loss: 14.918, Acc: 0.325,Acc1: 0.811,Acc2: 0.194, Base Lr: 7.19e-03,biloss:0.001,icloss:0.239,loss1:4.538, loss2:5.830, loss3:5.034, ploss:0.000,palign:0.000,total_loss:15.642,fceloss:0.0000
+2026-06-11 13:54:43,027 transreid.image_train INFO: Epoch[31] Iteration[40/111] Loss: 14.913, Acc: 0.327,Acc1: 0.814,Acc2: 0.185, Base Lr: 7.19e-03,biloss:0.001,icloss:0.271,loss1:4.062, loss2:5.714, loss3:5.202, ploss:0.000,palign:0.000,total_loss:15.249,fceloss:0.0000
+2026-06-11 13:54:47,604 transreid.image_train INFO: Epoch[31] Iteration[60/111] Loss: 14.887, Acc: 0.339,Acc1: 0.806,Acc2: 0.188, Base Lr: 7.19e-03,biloss:0.001,icloss:0.293,loss1:4.536, loss2:5.559, loss3:5.128, ploss:0.000,palign:0.000,total_loss:15.519,fceloss:0.0000
+2026-06-11 13:54:53,624 transreid.image_train INFO: Epoch[31] Iteration[80/111] Loss: 14.929, Acc: 0.355,Acc1: 0.812,Acc2: 0.198, Base Lr: 7.19e-03,biloss:0.001,icloss:0.288,loss1:3.863, loss2:5.543, loss3:5.037, ploss:0.000,palign:0.000,total_loss:14.732,fceloss:0.0000
+2026-06-11 13:54:58,515 transreid.image_train INFO: Epoch[31] Iteration[100/111] Loss: 14.776, Acc: 0.376,Acc1: 0.815,Acc2: 0.210, Base Lr: 7.19e-03,biloss:0.001,icloss:0.288,loss1:3.166, loss2:5.483, loss3:3.836, ploss:0.000,palign:0.000,total_loss:12.774,fceloss:0.0000
+2026-06-11 13:55:01,277 transreid.image_train INFO: Epoch 31 done. Time per batch: 12.302[s] Speed: 2.6[samples/s]
+2026-06-11 13:55:14,952 transreid.image_train INFO: Validation Results - Epoch: 31
+2026-06-11 13:55:14,953 transreid.image_train INFO: mAP: 56.6%
+2026-06-11 13:55:14,953 transreid.image_train INFO: CMC curve, Rank-1  :63.2%
+2026-06-11 13:55:14,953 transreid.image_train INFO: CMC curve, Rank-5  :73.1%
+2026-06-11 13:55:14,953 transreid.image_train INFO: CMC curve, Rank-10 :77.4%
+2026-06-11 13:55:14,953 transreid.image_train INFO: Best mAP: 56.7%
+2026-06-11 13:55:14,953 transreid.image_train INFO: Best Rank-1: 62.1%
+2026-06-11 13:55:14,953 transreid.image_train INFO: Best Rank-5: 72.1%
+2026-06-11 13:55:14,953 transreid.image_train INFO: Best Rank-10: 77.4%
+2026-06-11 13:55:21,480 transreid.image_train INFO: Epoch[32] Iteration[20/111] Loss: 14.679, Acc: 0.383,Acc1: 0.817,Acc2: 0.209, Base Lr: 7.14e-03,biloss:0.001,icloss:0.337,loss1:4.071, loss2:5.489, loss3:4.667, ploss:0.000,palign:0.000,total_loss:14.565,fceloss:0.0000
+2026-06-11 13:55:26,422 transreid.image_train INFO: Epoch[32] Iteration[40/111] Loss: 14.774, Acc: 0.363,Acc1: 0.820,Acc2: 0.231, Base Lr: 7.14e-03,biloss:0.001,icloss:0.255,loss1:4.248, loss2:5.779, loss3:5.148, ploss:0.000,palign:0.000,total_loss:15.431,fceloss:0.0000
+2026-06-11 13:55:31,328 transreid.image_train INFO: Epoch[32] Iteration[60/111] Loss: 14.723, Acc: 0.369,Acc1: 0.827,Acc2: 0.228, Base Lr: 7.14e-03,biloss:0.001,icloss:0.337,loss1:2.948, loss2:5.345, loss3:4.217, ploss:0.000,palign:0.000,total_loss:12.847,fceloss:0.0000
+2026-06-11 13:55:37,172 transreid.image_train INFO: Epoch[32] Iteration[80/111] Loss: 14.714, Acc: 0.380,Acc1: 0.825,Acc2: 0.224, Base Lr: 7.14e-03,biloss:0.001,icloss:0.254,loss1:4.582, loss2:5.823, loss3:5.260, ploss:0.000,palign:0.000,total_loss:15.920,fceloss:0.0000
+2026-06-11 13:55:41,904 transreid.image_train INFO: Epoch[32] Iteration[100/111] Loss: 14.614, Acc: 0.396,Acc1: 0.827,Acc2: 0.229, Base Lr: 7.14e-03,biloss:0.001,icloss:0.294,loss1:3.255, loss2:5.487, loss3:4.069, ploss:0.000,palign:0.000,total_loss:13.107,fceloss:0.0000
+2026-06-11 13:55:44,580 transreid.image_train INFO: Epoch 32 done. Time per batch: 12.696[s] Speed: 2.5[samples/s]
+2026-06-11 13:55:58,369 transreid.image_train INFO: Validation Results - Epoch: 32
+2026-06-11 13:55:58,370 transreid.image_train INFO: mAP: 56.2%
+2026-06-11 13:55:58,370 transreid.image_train INFO: CMC curve, Rank-1  :63.5%
+2026-06-11 13:55:58,370 transreid.image_train INFO: CMC curve, Rank-5  :73.3%
+2026-06-11 13:55:58,370 transreid.image_train INFO: CMC curve, Rank-10 :77.9%
+2026-06-11 13:55:58,370 transreid.image_train INFO: Best mAP: 56.7%
+2026-06-11 13:55:58,370 transreid.image_train INFO: Best Rank-1: 62.1%
+2026-06-11 13:55:58,370 transreid.image_train INFO: Best Rank-5: 72.1%
+2026-06-11 13:55:58,370 transreid.image_train INFO: Best Rank-10: 77.4%
+2026-06-11 13:56:04,570 transreid.image_train INFO: Epoch[33] Iteration[20/111] Loss: 14.773, Acc: 0.345,Acc1: 0.828,Acc2: 0.194, Base Lr: 7.08e-03,biloss:0.001,icloss:0.333,loss1:3.653, loss2:5.750, loss3:4.386, ploss:0.000,palign:0.000,total_loss:14.122,fceloss:0.0000
+2026-06-11 13:56:09,511 transreid.image_train INFO: Epoch[33] Iteration[40/111] Loss: 14.756, Acc: 0.343,Acc1: 0.829,Acc2: 0.202, Base Lr: 7.08e-03,biloss:0.001,icloss:0.310,loss1:3.542, loss2:5.469, loss3:4.899, ploss:0.000,palign:0.000,total_loss:14.222,fceloss:0.0000
+2026-06-11 13:56:14,436 transreid.image_train INFO: Epoch[33] Iteration[60/111] Loss: 14.745, Acc: 0.360,Acc1: 0.833,Acc2: 0.210, Base Lr: 7.08e-03,biloss:0.001,icloss:0.287,loss1:4.037, loss2:5.709, loss3:5.345, ploss:0.000,palign:0.000,total_loss:15.379,fceloss:0.0000
+2026-06-11 13:56:20,313 transreid.image_train INFO: Epoch[33] Iteration[80/111] Loss: 14.684, Acc: 0.379,Acc1: 0.831,Acc2: 0.225, Base Lr: 7.08e-03,biloss:0.001,icloss:0.284,loss1:4.359, loss2:5.653, loss3:5.110, ploss:0.000,palign:0.000,total_loss:15.407,fceloss:0.0000
+2026-06-11 13:56:25,073 transreid.image_train INFO: Epoch[33] Iteration[100/111] Loss: 14.564, Acc: 0.392,Acc1: 0.840,Acc2: 0.234, Base Lr: 7.08e-03,biloss:0.001,icloss:0.360,loss1:3.137, loss2:5.352, loss3:4.351, ploss:0.000,palign:0.000,total_loss:13.202,fceloss:0.0000
+2026-06-11 13:56:27,694 transreid.image_train INFO: Epoch 33 done. Time per batch: 13.087[s] Speed: 2.4[samples/s]
+2026-06-11 13:56:41,442 transreid.image_train INFO: Validation Results - Epoch: 33
+2026-06-11 13:56:41,442 transreid.image_train INFO: mAP: 57.4%
+2026-06-11 13:56:41,442 transreid.image_train INFO: CMC curve, Rank-1  :63.7%
+2026-06-11 13:56:41,442 transreid.image_train INFO: CMC curve, Rank-5  :74.4%
+2026-06-11 13:56:41,442 transreid.image_train INFO: CMC curve, Rank-10 :77.6%
+2026-06-11 13:56:43,347 transreid.image_train INFO: Best mAP: 57.4%
+2026-06-11 13:56:43,347 transreid.image_train INFO: Best Rank-1: 63.7%
+2026-06-11 13:56:43,347 transreid.image_train INFO: Best Rank-5: 74.4%
+2026-06-11 13:56:43,347 transreid.image_train INFO: Best Rank-10: 77.6%
+2026-06-11 13:56:49,676 transreid.image_train INFO: Epoch[34] Iteration[20/111] Loss: 14.803, Acc: 0.330,Acc1: 0.822,Acc2: 0.239, Base Lr: 7.03e-03,biloss:0.001,icloss:0.333,loss1:4.647, loss2:5.559, loss3:4.835, ploss:0.000,palign:0.000,total_loss:15.375,fceloss:0.0000
+2026-06-11 13:56:54,083 transreid.image_train INFO: Epoch[34] Iteration[40/111] Loss: 14.650, Acc: 0.356,Acc1: 0.825,Acc2: 0.234, Base Lr: 7.03e-03,biloss:0.001,icloss:0.310,loss1:4.071, loss2:5.546, loss3:4.631, ploss:0.000,palign:0.000,total_loss:14.558,fceloss:0.0000
+2026-06-11 13:56:59,995 transreid.image_train INFO: Epoch[34] Iteration[60/111] Loss: 14.521, Acc: 0.366,Acc1: 0.831,Acc2: 0.223, Base Lr: 7.03e-03,biloss:0.001,icloss:0.273,loss1:3.750, loss2:5.572, loss3:4.434, ploss:0.000,palign:0.000,total_loss:14.030,fceloss:0.0000
+2026-06-11 13:57:05,170 transreid.image_train INFO: Epoch[34] Iteration[80/111] Loss: 14.489, Acc: 0.380,Acc1: 0.840,Acc2: 0.224, Base Lr: 7.03e-03,biloss:0.001,icloss:0.324,loss1:3.536, loss2:5.418, loss3:4.777, ploss:0.000,palign:0.000,total_loss:14.056,fceloss:0.0000
+2026-06-11 13:57:09,167 transreid.image_train INFO: Epoch[34] Iteration[100/111] Loss: 14.356, Acc: 0.410,Acc1: 0.856,Acc2: 0.235, Base Lr: 7.03e-03,biloss:0.001,icloss:0.313,loss1:3.359, loss2:5.433, loss3:4.532, ploss:0.000,palign:0.000,total_loss:13.639,fceloss:0.0000
+2026-06-11 13:57:11,858 transreid.image_train INFO: Epoch 34 done. Time per batch: 13.489[s] Speed: 2.4[samples/s]
+2026-06-11 13:57:25,678 transreid.image_train INFO: Validation Results - Epoch: 34
+2026-06-11 13:57:25,678 transreid.image_train INFO: mAP: 56.6%
+2026-06-11 13:57:25,678 transreid.image_train INFO: CMC curve, Rank-1  :62.8%
+2026-06-11 13:57:25,678 transreid.image_train INFO: CMC curve, Rank-5  :73.8%
+2026-06-11 13:57:25,678 transreid.image_train INFO: CMC curve, Rank-10 :77.6%
+2026-06-11 13:57:25,678 transreid.image_train INFO: Best mAP: 57.4%
+2026-06-11 13:57:25,679 transreid.image_train INFO: Best Rank-1: 63.7%
+2026-06-11 13:57:25,679 transreid.image_train INFO: Best Rank-5: 74.4%
+2026-06-11 13:57:25,679 transreid.image_train INFO: Best Rank-10: 77.6%
+2026-06-11 13:57:32,006 transreid.image_train INFO: Epoch[35] Iteration[20/111] Loss: 14.321, Acc: 0.428,Acc1: 0.855,Acc2: 0.256, Base Lr: 6.97e-03,biloss:0.001,icloss:0.315,loss1:3.209, loss2:5.442, loss3:3.732, ploss:0.000,palign:0.000,total_loss:12.699,fceloss:0.0000
+2026-06-11 13:57:36,472 transreid.image_train INFO: Epoch[35] Iteration[40/111] Loss: 14.373, Acc: 0.417,Acc1: 0.855,Acc2: 0.252, Base Lr: 6.97e-03,biloss:0.001,icloss:0.305,loss1:3.657, loss2:5.467, loss3:4.317, ploss:0.000,palign:0.000,total_loss:13.748,fceloss:0.0000
+2026-06-11 13:57:42,101 transreid.image_train INFO: Epoch[35] Iteration[60/111] Loss: 14.475, Acc: 0.398,Acc1: 0.858,Acc2: 0.229, Base Lr: 6.97e-03,biloss:0.001,icloss:0.313,loss1:3.260, loss2:5.420, loss3:4.296, ploss:0.000,palign:0.000,total_loss:13.290,fceloss:0.0000
+2026-06-11 13:57:48,017 transreid.image_train INFO: Epoch[35] Iteration[80/111] Loss: 14.352, Acc: 0.411,Acc1: 0.857,Acc2: 0.243, Base Lr: 6.97e-03,biloss:0.001,icloss:0.390,loss1:4.022, loss2:5.337, loss3:4.333, ploss:0.000,palign:0.000,total_loss:14.082,fceloss:0.0000
+2026-06-11 13:57:52,654 transreid.image_train INFO: Epoch[35] Iteration[100/111] Loss: 14.161, Acc: 0.441,Acc1: 0.863,Acc2: 0.257, Base Lr: 6.97e-03,biloss:0.001,icloss:0.384,loss1:2.706, loss2:5.195, loss3:3.445, ploss:0.000,palign:0.000,total_loss:11.730,fceloss:0.0000
+2026-06-11 13:57:55,363 transreid.image_train INFO: Epoch 35 done. Time per batch: 13.884[s] Speed: 2.3[samples/s]
+2026-06-11 13:58:09,052 transreid.image_train INFO: Validation Results - Epoch: 35
+2026-06-11 13:58:09,052 transreid.image_train INFO: mAP: 58.5%
+2026-06-11 13:58:09,052 transreid.image_train INFO: CMC curve, Rank-1  :65.3%
+2026-06-11 13:58:09,052 transreid.image_train INFO: CMC curve, Rank-5  :74.7%
+2026-06-11 13:58:09,052 transreid.image_train INFO: CMC curve, Rank-10 :78.3%
+2026-06-11 13:58:10,988 transreid.image_train INFO: Best mAP: 58.5%
+2026-06-11 13:58:10,988 transreid.image_train INFO: Best Rank-1: 65.3%
+2026-06-11 13:58:10,988 transreid.image_train INFO: Best Rank-5: 74.7%
+2026-06-11 13:58:10,988 transreid.image_train INFO: Best Rank-10: 78.3%
+2026-06-11 13:58:17,118 transreid.image_train INFO: Epoch[36] Iteration[20/111] Loss: 14.409, Acc: 0.405,Acc1: 0.864,Acc2: 0.220, Base Lr: 6.92e-03,biloss:0.001,icloss:0.328,loss1:3.086, loss2:5.342, loss3:4.265, ploss:0.000,palign:0.000,total_loss:13.022,fceloss:0.0000
+2026-06-11 13:58:21,751 transreid.image_train INFO: Epoch[36] Iteration[40/111] Loss: 14.218, Acc: 0.425,Acc1: 0.882,Acc2: 0.243, Base Lr: 6.92e-03,biloss:0.001,icloss:0.373,loss1:3.122, loss2:5.285, loss3:4.047, ploss:0.000,palign:0.000,total_loss:12.828,fceloss:0.0000
+2026-06-11 13:58:27,651 transreid.image_train INFO: Epoch[36] Iteration[60/111] Loss: 14.155, Acc: 0.438,Acc1: 0.869,Acc2: 0.246, Base Lr: 6.92e-03,biloss:0.001,icloss:0.297,loss1:3.501, loss2:5.596, loss3:5.373, ploss:0.000,palign:0.000,total_loss:14.767,fceloss:0.0000
+2026-06-11 13:58:32,253 transreid.image_train INFO: Epoch[36] Iteration[80/111] Loss: 14.076, Acc: 0.439,Acc1: 0.877,Acc2: 0.252, Base Lr: 6.92e-03,biloss:0.001,icloss:0.336,loss1:3.315, loss2:5.401, loss3:4.279, ploss:0.000,palign:0.000,total_loss:13.331,fceloss:0.0000
+2026-06-11 13:58:37,494 transreid.image_train INFO: Epoch[36] Iteration[100/111] Loss: 13.967, Acc: 0.456,Acc1: 0.876,Acc2: 0.262, Base Lr: 6.92e-03,biloss:0.001,icloss:0.347,loss1:3.193, loss2:5.321, loss3:3.960, ploss:0.000,palign:0.000,total_loss:12.822,fceloss:0.0000
+2026-06-11 13:58:40,204 transreid.image_train INFO: Epoch 36 done. Time per batch: 14.292[s] Speed: 2.2[samples/s]
+2026-06-11 13:58:53,894 transreid.image_train INFO: Validation Results - Epoch: 36
+2026-06-11 13:58:53,894 transreid.image_train INFO: mAP: 57.9%
+2026-06-11 13:58:53,895 transreid.image_train INFO: CMC curve, Rank-1  :64.8%
+2026-06-11 13:58:53,895 transreid.image_train INFO: CMC curve, Rank-5  :74.7%
+2026-06-11 13:58:53,895 transreid.image_train INFO: CMC curve, Rank-10 :78.1%
+2026-06-11 13:58:53,895 transreid.image_train INFO: Best mAP: 58.5%
+2026-06-11 13:58:53,895 transreid.image_train INFO: Best Rank-1: 65.3%
+2026-06-11 13:58:53,895 transreid.image_train INFO: Best Rank-5: 74.7%
+2026-06-11 13:58:53,895 transreid.image_train INFO: Best Rank-10: 78.3%
+2026-06-11 13:59:00,294 transreid.image_train INFO: Epoch[37] Iteration[20/111] Loss: 14.119, Acc: 0.381,Acc1: 0.859,Acc2: 0.253, Base Lr: 6.86e-03,biloss:0.001,icloss:0.318,loss1:3.381, loss2:5.431, loss3:4.384, ploss:0.000,palign:0.000,total_loss:13.515,fceloss:0.0000
+2026-06-11 13:59:04,987 transreid.image_train INFO: Epoch[37] Iteration[40/111] Loss: 14.077, Acc: 0.406,Acc1: 0.879,Acc2: 0.255, Base Lr: 6.86e-03,biloss:0.001,icloss:0.310,loss1:3.767, loss2:5.581, loss3:4.621, ploss:0.000,palign:0.000,total_loss:14.280,fceloss:0.0000
+2026-06-11 13:59:10,882 transreid.image_train INFO: Epoch[37] Iteration[60/111] Loss: 13.976, Acc: 0.446,Acc1: 0.884,Acc2: 0.257, Base Lr: 6.86e-03,biloss:0.001,icloss:0.355,loss1:3.061, loss2:5.374, loss3:4.326, ploss:0.000,palign:0.000,total_loss:13.118,fceloss:0.0000
+2026-06-11 13:59:15,510 transreid.image_train INFO: Epoch[37] Iteration[80/111] Loss: 13.963, Acc: 0.463,Acc1: 0.887,Acc2: 0.263, Base Lr: 6.86e-03,biloss:0.001,icloss:0.337,loss1:3.472, loss2:5.356, loss3:4.485, ploss:0.000,palign:0.000,total_loss:13.650,fceloss:0.0000
+2026-06-11 13:59:19,904 transreid.image_train INFO: Epoch[37] Iteration[100/111] Loss: 13.850, Acc: 0.483,Acc1: 0.892,Acc2: 0.279, Base Lr: 6.86e-03,biloss:0.001,icloss:0.397,loss1:2.820, loss2:5.201, loss3:4.212, ploss:0.000,palign:0.000,total_loss:12.631,fceloss:0.0000
+2026-06-11 13:59:22,619 transreid.image_train INFO: Epoch 37 done. Time per batch: 14.678[s] Speed: 2.2[samples/s]
+2026-06-11 13:59:36,393 transreid.image_train INFO: Validation Results - Epoch: 37
+2026-06-11 13:59:36,393 transreid.image_train INFO: mAP: 58.0%
+2026-06-11 13:59:36,393 transreid.image_train INFO: CMC curve, Rank-1  :64.1%
+2026-06-11 13:59:36,393 transreid.image_train INFO: CMC curve, Rank-5  :74.7%
+2026-06-11 13:59:36,393 transreid.image_train INFO: CMC curve, Rank-10 :78.1%
+2026-06-11 13:59:36,393 transreid.image_train INFO: Best mAP: 58.5%
+2026-06-11 13:59:36,393 transreid.image_train INFO: Best Rank-1: 65.3%
+2026-06-11 13:59:36,393 transreid.image_train INFO: Best Rank-5: 74.7%
+2026-06-11 13:59:36,393 transreid.image_train INFO: Best Rank-10: 78.3%
+2026-06-11 13:59:42,769 transreid.image_train INFO: Epoch[38] Iteration[20/111] Loss: 13.972, Acc: 0.470,Acc1: 0.878,Acc2: 0.283, Base Lr: 6.80e-03,biloss:0.001,icloss:0.282,loss1:5.161, loss2:5.841, loss3:6.054, ploss:0.000,palign:0.000,total_loss:17.338,fceloss:0.0000
+2026-06-11 13:59:47,206 transreid.image_train INFO: Epoch[38] Iteration[40/111] Loss: 14.037, Acc: 0.439,Acc1: 0.882,Acc2: 0.270, Base Lr: 6.80e-03,biloss:0.001,icloss:0.314,loss1:3.674, loss2:5.538, loss3:4.796, ploss:0.000,palign:0.000,total_loss:14.323,fceloss:0.0000
+2026-06-11 13:59:53,051 transreid.image_train INFO: Epoch[38] Iteration[60/111] Loss: 13.974, Acc: 0.447,Acc1: 0.884,Acc2: 0.258, Base Lr: 6.80e-03,biloss:0.001,icloss:0.342,loss1:3.047, loss2:5.359, loss3:4.250, ploss:0.000,palign:0.000,total_loss:12.999,fceloss:0.0000
+2026-06-11 13:59:58,711 transreid.image_train INFO: Epoch[38] Iteration[80/111] Loss: 13.827, Acc: 0.470,Acc1: 0.890,Acc2: 0.265, Base Lr: 6.80e-03,biloss:0.001,icloss:0.384,loss1:2.479, loss2:5.199, loss3:3.625, ploss:0.000,palign:0.000,total_loss:11.689,fceloss:0.0000
+2026-06-11 14:00:02,039 transreid.image_train INFO: Epoch[38] Iteration[100/111] Loss: 13.677, Acc: 0.487,Acc1: 0.894,Acc2: 0.287, Base Lr: 6.80e-03,biloss:0.001,icloss:0.335,loss1:3.629, loss2:5.514, loss3:4.658, ploss:0.000,palign:0.000,total_loss:14.137,fceloss:0.0000
+2026-06-11 14:00:04,651 transreid.image_train INFO: Epoch 38 done. Time per batch: 15.060[s] Speed: 2.1[samples/s]
+2026-06-11 14:00:18,381 transreid.image_train INFO: Validation Results - Epoch: 38
+2026-06-11 14:00:18,381 transreid.image_train INFO: mAP: 57.3%
+2026-06-11 14:00:18,381 transreid.image_train INFO: CMC curve, Rank-1  :64.1%
+2026-06-11 14:00:18,381 transreid.image_train INFO: CMC curve, Rank-5  :74.9%
+2026-06-11 14:00:18,381 transreid.image_train INFO: CMC curve, Rank-10 :77.9%
+2026-06-11 14:00:18,381 transreid.image_train INFO: Best mAP: 58.5%
+2026-06-11 14:00:18,381 transreid.image_train INFO: Best Rank-1: 65.3%
+2026-06-11 14:00:18,381 transreid.image_train INFO: Best Rank-5: 74.7%
+2026-06-11 14:00:18,381 transreid.image_train INFO: Best Rank-10: 78.3%
+2026-06-11 14:00:24,762 transreid.image_train INFO: Epoch[39] Iteration[20/111] Loss: 13.959, Acc: 0.422,Acc1: 0.897,Acc2: 0.263, Base Lr: 6.74e-03,biloss:0.001,icloss:0.340,loss1:3.088, loss2:5.335, loss3:4.346, ploss:0.000,palign:0.000,total_loss:13.110,fceloss:0.0000
+2026-06-11 14:00:29,892 transreid.image_train INFO: Epoch[39] Iteration[40/111] Loss: 14.017, Acc: 0.431,Acc1: 0.895,Acc2: 0.266, Base Lr: 6.74e-03,biloss:0.001,icloss:0.352,loss1:4.202, loss2:5.381, loss3:4.410, ploss:0.000,palign:0.000,total_loss:14.347,fceloss:0.0000
+2026-06-11 14:00:34,545 transreid.image_train INFO: Epoch[39] Iteration[60/111] Loss: 13.825, Acc: 0.448,Acc1: 0.900,Acc2: 0.290, Base Lr: 6.74e-03,biloss:0.001,icloss:0.327,loss1:3.960, loss2:6.056, loss3:4.483, ploss:0.000,palign:0.000,total_loss:14.827,fceloss:0.0000
+2026-06-11 14:00:40,438 transreid.image_train INFO: Epoch[39] Iteration[80/111] Loss: 13.703, Acc: 0.469,Acc1: 0.898,Acc2: 0.291, Base Lr: 6.74e-03,biloss:0.001,icloss:0.369,loss1:3.027, loss2:5.324, loss3:4.330, ploss:0.000,palign:0.000,total_loss:13.051,fceloss:0.0000
+2026-06-11 14:00:45,029 transreid.image_train INFO: Epoch[39] Iteration[100/111] Loss: 13.579, Acc: 0.498,Acc1: 0.903,Acc2: 0.301, Base Lr: 6.74e-03,biloss:0.001,icloss:0.417,loss1:2.792, loss2:5.104, loss3:3.805, ploss:0.000,palign:0.000,total_loss:12.120,fceloss:0.0000
+2026-06-11 14:00:46,709 transreid.image_train INFO: Epoch 39 done. Time per batch: 15.442[s] Speed: 2.1[samples/s]
+2026-06-11 14:01:00,489 transreid.image_train INFO: Validation Results - Epoch: 39
+2026-06-11 14:01:00,489 transreid.image_train INFO: mAP: 58.5%
+2026-06-11 14:01:00,489 transreid.image_train INFO: CMC curve, Rank-1  :65.7%
+2026-06-11 14:01:00,489 transreid.image_train INFO: CMC curve, Rank-5  :75.4%
+2026-06-11 14:01:00,489 transreid.image_train INFO: CMC curve, Rank-10 :78.3%
+2026-06-11 14:01:00,489 transreid.image_train INFO: Best mAP: 58.5%
+2026-06-11 14:01:00,489 transreid.image_train INFO: Best Rank-1: 65.3%
+2026-06-11 14:01:00,489 transreid.image_train INFO: Best Rank-5: 74.7%
+2026-06-11 14:01:00,489 transreid.image_train INFO: Best Rank-10: 78.3%
+2026-06-11 14:01:06,581 transreid.image_train INFO: Epoch[40] Iteration[20/111] Loss: 13.904, Acc: 0.438,Acc1: 0.872,Acc2: 0.281, Base Lr: 6.68e-03,biloss:0.001,icloss:0.318,loss1:3.634, loss2:5.495, loss3:4.113, ploss:0.000,palign:0.000,total_loss:13.561,fceloss:0.0000
+2026-06-11 14:01:11,765 transreid.image_train INFO: Epoch[40] Iteration[40/111] Loss: 13.739, Acc: 0.468,Acc1: 0.906,Acc2: 0.289, Base Lr: 6.68e-03,biloss:0.001,icloss:0.358,loss1:3.629, loss2:5.295, loss3:4.561, ploss:0.000,palign:0.000,total_loss:13.844,fceloss:0.0000
+2026-06-11 14:01:16,042 transreid.image_train INFO: Epoch[40] Iteration[60/111] Loss: 13.711, Acc: 0.468,Acc1: 0.905,Acc2: 0.285, Base Lr: 6.68e-03,biloss:0.001,icloss:0.316,loss1:3.592, loss2:5.485, loss3:4.935, ploss:0.000,palign:0.000,total_loss:14.329,fceloss:0.0000
+2026-06-11 14:01:21,953 transreid.image_train INFO: Epoch[40] Iteration[80/111] Loss: 13.574, Acc: 0.491,Acc1: 0.907,Acc2: 0.296, Base Lr: 6.68e-03,biloss:0.001,icloss:0.366,loss1:3.563, loss2:5.328, loss3:4.459, ploss:0.000,palign:0.000,total_loss:13.718,fceloss:0.0000
