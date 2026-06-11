@@ -1,0 +1,60 @@
+MODEL:
+  PRETRAIN_CHOICE: ''  # CLIP loads its own pretrained weights
+  PRETRAIN_PATH: ''
+  METRIC_LOSS_TYPE: 'triplet'
+  IF_LABELSMOOTH: 'on'
+  IF_WITH_CENTER: 'yes'
+  NAME: 'clip_facenet'
+  NO_MARGIN: True
+  DEVICE_ID: ('0')
+  TRANSFORMER_TYPE: 'clip_vit_base_patch16_224'
+  STRIDE_SIZE: [16, 16]
+  SHIFT_NUM: 8
+  RE_ARRANGE: True
+  MCLOSS: False
+  FCE: False
+  DIST_TRAIN: False
+  MFMP: False
+  MAMBA_ENHANCE: False
+
+INPUT:
+  SIZE_TRAIN: [224, 224]
+  SIZE_TEST: [224, 224]
+  PROB: 0.5
+  RE_PROB: 0.5
+  PADDING: 10
+  PIXEL_MEAN: [0.48145466, 0.4578275, 0.40821073]
+  PIXEL_STD: [0.26862954, 0.26130258, 0.27577711]
+
+DATASETS:
+  NAMES: ('WMVEID863')
+  ROOT_DIR: ('/root/autodl-tmp/data/datasets/WMVeID863')
+
+DATALOADER:
+  SAMPLER: 'softmax_triplet'
+  NUM_INSTANCE: 4
+  NUM_WORKERS: 8
+
+SOLVER:
+  OPTIMIZER_NAME: 'SGD'
+  BASE_LR: 0.008
+  MAX_EPOCHS: 150
+  IMS_PER_BATCH: 32
+  WARMUP_METHOD: 'linear'
+  LARGE_FC_LR: False
+  CHECKPOINT_PERIOD: 40
+  LOG_PERIOD: 20
+  EVAL_PERIOD: 1
+  WEIGHT_DECAY: 1e-4
+  WEIGHT_DECAY_BIAS: 1e-4
+  BIAS_LR_FACTOR: 2
+
+TEST:
+  EVAL: True
+  IMS_PER_BATCH: 64
+  RE_RANKING: False
+  WEIGHT: ''
+  NECK_FEAT: 'before'
+  FEAT_NORM: 'yes'
+
+OUTPUT_DIR: './logs/clip_facenet'
