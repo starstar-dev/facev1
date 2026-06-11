@@ -45,6 +45,76 @@ def compute_image_quality(img, saturation_thresh=1.8):
     raw_q = (1.0 - 0.6 * saturated) * (0.2 + 0.8 * texture.clamp(0.0, 1.0))
     return 0.15 + 0.85 * raw_q.clamp(0.0, 1.0)
 
+def compute_image_quality_map(img, patch_size=16):
+    """
+    Patch-level image quality from CLIP-normalized image.
+
+    Args:
+        img: [B,3,224,224]
+    Returns:
+        q_img:   [B,196,1], high = clean
+        bad_img: [B,196,1], high = damaged / flare-like
+    """
+    B, C, H, W = img.shape
+    assert H % patch_size == 0 and W % patch_size == 0
+
+    # CLIP denorm，避免直接在 normalized 空间判断亮度
+    mean = img.new_tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1)
+    std = img.new_tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1)
+    x = (img * std + mean).clamp(0, 1)
+
+    gray = x.mean(dim=1, keepdim=True)
+    max_rgb = x.max(dim=1, keepdim=True).values
+    min_rgb = x.min(dim=1, keepdim=True).values
+
+    # 1) 高亮 / 过曝
+    over = (max_rgb > 0.88).float()
+
+    # 2) 近白区域，车灯/反光常见
+    near_white = ((max_rgb > 0.82) & ((max_rgb - min_rgb) < 0.18)).float()
+
+    # 3) 纹理损失：梯度太低但亮度高，更像耀斑/过曝
+    dx = torch.abs(gray[:, :, :, 1:] - gray[:, :, :, :-1])
+    dx = F.pad(dx, (0, 1, 0, 0))
+    dy = torch.abs(gray[:, :, 1:, :] - gray[:, :, :-1, :])
+    dy = F.pad(dy, (0, 0, 0, 1))
+    grad = dx + dy
+
+    over_patch = F.avg_pool2d(over, patch_size, patch_size).flatten(1)
+    white_patch = F.avg_pool2d(near_white, patch_size, patch_size).flatten(1)
+    grad_patch = F.avg_pool2d(grad, patch_size, patch_size).flatten(1)
+
+    low_texture = (1.0 - (grad_patch / 0.18).clamp(0, 1))
+
+    bad = 0.45 * over_patch + 0.35 * white_patch + 0.20 * (over_patch * low_texture)
+    bad = bad.clamp(0, 1)
+
+    q = 1.0 - bad
+    q = 0.15 + 0.85 * q
+
+    return q.unsqueeze(-1), bad.unsqueeze(-1)
+
+def build_center_foreground_prior(batch_size, device, dtype, h=14, w=14):
+    """
+    Simple foreground prior for cropped vehicle ReID images.
+    Suppress border/background responses.
+    Return: [B,196,1]
+    """
+    yy, xx = torch.meshgrid(
+        torch.linspace(-1, 1, h, device=device, dtype=dtype),
+        torch.linspace(-1, 1, w, device=device, dtype=dtype),
+        indexing="ij"
+    )
+
+    # 车辆一般在 crop 中心，边缘/底部背景适当压低
+    dist2 = (xx / 0.95) ** 2 + (yy / 0.85) ** 2
+    prior = torch.exp(-dist2)
+
+    # 不完全屏蔽边缘，只是降权
+    prior = 0.35 + 0.65 * prior
+    prior = prior.reshape(1, h * w, 1).expand(batch_size, -1, -1)
+
+    return prior
 
 def compute_cross_modal_quality(featR, featN, per_patch=True):
     """
@@ -77,52 +147,84 @@ def compute_cross_modal_quality(featR, featN, per_patch=True):
     else:
         mean_sim = sim.mean(dim=1)  # (B,)
         quality = (mean_sim - 0.2) / 0.7
-        return 0.15 + 0.85 * quality.clamp(0.0, 1.0)  # (B,)
+        return (0.15 + 0.85 * quality.clamp(0.0, 1.0)).unsqueeze(-1)
 
 
 def compute_combined_quality(img_R, img_N, featR, featN, training):
     """
-    Combine image-level and cross-modal quality.
-    
-    Training: 0.3 × image + 0.7 × cross_modal → per-patch (B, 196)
-              image quality (B,1) broadcasts to per-patch
-    Inference: 1.0 × image → per-sample (B,)
-              (MFMP off, fallback to pixel-level only)
-    
+    Patch-level modality-specific quality.
+
+    Key idea:
+    - q_cross only measures R/N disagreement.
+    - image-level patch damage decides whether R or N is more likely damaged.
+    - foreground prior suppresses background high-light false positives.
+
     Returns:
-        q_R, q_N: (B, 196) during training, (B,) during inference
+        q_R, q_N: [B,196,1]
     """
-    q_img_R = compute_image_quality(img_R)  # (B,)
-    q_img_N = compute_image_quality(img_N)  # (B,)
-    
+    q_img_R, bad_img_R = compute_image_quality_map(img_R)  # [B,196,1]
+    q_img_N, bad_img_N = compute_image_quality_map(img_N)  # [B,196,1]
+
+    B = img_R.size(0)
+    fg_prior = build_center_foreground_prior(
+        batch_size=B,
+        device=img_R.device,
+        dtype=img_R.dtype
+    )
+
+    # 背景区域降低损伤响应
+    bad_img_R = bad_img_R * fg_prior
+    bad_img_N = bad_img_N * fg_prior
+
     if training and featR is not None and featN is not None:
-        q_cross = compute_cross_modal_quality(featR, featN, per_patch=True)  # (B, 196)
-        # Broadcast image quality to per-patch for weighted combination
-        q_R = 0.3 * q_img_R.unsqueeze(1) + 0.7 * q_cross  # (B, 196)
-        q_N = 0.3 * q_img_N.unsqueeze(1) + 0.7 * q_cross  # (B, 196)
+        patches_R = featR[:, 1:, :]
+        patches_N = featN[:, 1:, :]
+
+        sim = F.cosine_similarity(patches_R, patches_N, dim=-1).unsqueeze(-1)  # [B,196,1]
+
+        # R/N 不一致程度，不直接等于 R 坏或 N 坏
+        disagree = (1.0 - ((sim - 0.2) / 0.7).clamp(0, 1)).clamp(0, 1)
+
+        # 谁的图像损伤更大，就把 disagreement 更多归因给谁
+        bad_sum = bad_img_R + bad_img_N + 1e-6
+        assign_R = bad_img_R / bad_sum
+        assign_N = bad_img_N / bad_sum
+
+        bad_R = 0.65 * bad_img_R + 0.35 * disagree * assign_R
+        bad_N = 0.65 * bad_img_N + 0.35 * disagree * assign_N
     else:
-        q_R = q_img_R  # (B,)
-        q_N = q_img_N  # (B,)
-    
-    return q_R, q_N
+        bad_R = bad_img_R
+        bad_N = bad_img_N
+
+    q_R = 1.0 - bad_R.clamp(0, 1)
+    q_N = 1.0 - bad_N.clamp(0, 1)
+
+    q_R = 0.15 + 0.85 * q_R
+    q_N = 0.15 + 0.85 * q_N
+
+    return q_R.clamp(0.15, 1.0), q_N.clamp(0.15, 1.0)
 
 
-def patch_quality_to_scalar(q):
+def patch_quality_to_scalar(q, worst_ratio=0.3):
     """
-    Aggregate per-patch quality to per-sample scalar.
-    
-    Used for:
-    - Logging (single number per sample)
-    - Loss gating (loss is per-sample)
-    
+    Aggregate patch-level quality to sample-level quality.
+
     Args:
-        q: (B, 196) per-patch or (B,) scalar
+        q: [B, 196, 1] or [B, 196] or [B]
     Returns:
-        (B,) per-sample scalar
+        q_sample: [B]
     """
-    if q.dim() == 2:  # (B, 196)
-        return q.mean(dim=1)  # (B,)
-    return q  # already (B,)
+    if q is None:
+        return None
+
+    if q.dim() == 1:
+        return q
+
+    if q.dim() == 3:
+        q = q.squeeze(-1)
+
+    k = max(1, int(q.size(1) * worst_ratio))
+    return q.topk(k, dim=1, largest=False).values.mean(dim=1)
 
 
 def compute_modality_quality(img_R, img_N, saturation_thresh=1.8):

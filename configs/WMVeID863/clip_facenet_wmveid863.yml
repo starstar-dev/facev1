@@ -15,7 +15,7 @@ MODEL:
   FCE: False
   DIST_TRAIN: False
   MFMP: False
-  MAMBA_ENHANCE: False
+  #MAMBA_ENHANCE: False
 
 INPUT:
   SIZE_TRAIN: [224, 224]
@@ -28,7 +28,7 @@ INPUT:
 
 DATASETS:
   NAMES: ('WMVEID863')
-  ROOT_DIR: ('/root/autodl-tmp/data/datasets/WMVeID863')
+  ROOT_DIR: ('/root/autodl-tmp/projects/data/WMVEID863')
 
 DATALOADER:
   SAMPLER: 'softmax_triplet'

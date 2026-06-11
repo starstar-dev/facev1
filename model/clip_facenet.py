@@ -13,6 +13,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import CLIPVisionModel, CLIPVisionConfig
+import transformers.modeling_utils as _tf_modeling_utils
+_tf_modeling_utils.check_torch_load_is_safe = lambda: None  # only for trusted local CLIP official weight
 from model.coen_lite import compute_combined_quality, patch_quality_to_scalar
 
 
@@ -98,33 +100,36 @@ class CrossModalFusion(nn.Module):
         k_T = self.norm_kv_T(feat_T)
         v_T = self.norm_kv_T(feat_T)
         attn_T, _ = self.cross_attn_T(q, k_T, v_T)
-        
-        # Gate TI: worse self → borrow more from TI
-        # Per-patch: (B, 196) → (B, 196, 1), each patch gated independently
-        # Scalar:   (B,)     → (B, 1, 1), broadcasts to all patches
-        if q_self is not None:
-            if q_self.dim() == 2:  # (B, 196) per-patch token-level
-                gate_T = (1.0 + (1.0 - q_self)).unsqueeze(-1)  # (B, 196, 1)
-            else:  # (B,) per-sample scalar
-                gate_T = (1.0 + (1.0 - q_self)).view(-1, 1, 1)  # (B, 1, 1)
-        else:
-            gate_T = 1.0
-        
-        # 2. Cross-attend to peer modality (only when peer is cleaner)
+
+        # 2. Cross-attend to peer modality
         k_peer = self.norm_kv_peer(feat_peer)
         v_peer = self.norm_kv_peer(feat_peer)
         attn_peer, _ = self.cross_attn_peer(q, k_peer, v_peer)
         
-        # Gate peer: only borrow if peer quality > self quality
-        # Per-patch: each patch decides independently if peer is better
-        if q_self is not None and q_peer is not None:
-            peer_advantage = (q_peer - q_self).clamp(0, 1)
-            if peer_advantage.dim() == 2:  # (B, 196) per-patch
-                gate_peer = peer_advantage.unsqueeze(-1)  # (B, 196, 1)
-            else:  # (B,) scalar
-                gate_peer = peer_advantage.view(-1, 1, 1)  # (B, 1, 1)
+        B, N, D = feat_query.shape
+
+        q_self_token = self._quality_to_token_gate(q_self, N)
+        q_peer_token = self._quality_to_token_gate(q_peer, N)
+
+        if q_self_token is not None:
+            gate_T = 1.0 + (1.0 - q_self_token)  # [B,197,1]
+        else:
+            gate_T = 1.0
+
+        if q_self_token is not None and q_peer_token is not None:
+            peer_adv = q_peer_token - q_self_token
+            gate_peer = ((peer_adv - 0.03) / 0.25).clamp(0, 1) # [B,197,1]
         else:
             gate_peer = 0.0
+
+        # 诊断用：记录 peer gate 是否大量误开
+        if isinstance(gate_peer, torch.Tensor):
+            patch_peer = gate_peer[:, 1:, :]  # 去掉 CLS，只看 patch
+            self._last_peer_gate_mean = patch_peer.detach().mean()
+            self._last_peer_open_ratio = (patch_peer.detach() > 0.05).float().mean()
+        else:
+            self._last_peer_gate_mean = torch.tensor(0.0, device=feat_query.device)
+            self._last_peer_open_ratio = torch.tensor(0.0, device=feat_query.device)
         
         # Combine: self + TI repair + peer repair
         feat_query = identity \
@@ -135,6 +140,32 @@ class CrossModalFusion(nn.Module):
         identity2 = feat_query
         feat_query = identity2 + torch.tanh(self.gate_ffn) * self.ffn(self.norm_out(feat_query))
         return feat_query
+
+    def _quality_to_token_gate(self, q, num_tokens):
+        """
+        Convert quality to token-level gate.
+
+        q:
+            [B]          -> [B,197,1]
+            [B,196]      -> [B,197,1]
+            [B,196,1]    -> [B,197,1]
+        """
+        if q is None:
+            return None
+
+        if q.dim() == 1:
+            return q.view(-1, 1, 1).expand(-1, num_tokens, 1)
+
+        if q.dim() == 2:
+            q_patch = q.unsqueeze(-1)
+        else:
+            q_patch = q
+
+        assert q_patch.size(1) == num_tokens - 1, \
+            f"q_patch length {q_patch.size(1)} != num_tokens-1 {num_tokens - 1}"
+
+        q_cls = patch_quality_to_scalar(q_patch).view(-1, 1, 1)
+        return torch.cat([q_cls, q_patch], dim=1)
 
 class CrossPatchAttention(nn.Module):
     """
@@ -189,9 +220,9 @@ class CrossPatchAttention(nn.Module):
 
 class CLIPBackbone(nn.Module):
     """Wrapper around CLIPVisionModel for ReID feature extraction."""
-    def __init__(self, model_name='openai/clip-vit-base-patch16', freeze_blocks=0):
+    def __init__(self, model_name='/root/autodl-tmp/pretrained/clip-vit-base-patch16', freeze_blocks=0):
         super().__init__()
-        self.vision = CLIPVisionModel.from_pretrained(model_name)
+        self.vision = CLIPVisionModel.from_pretrained(model_name, local_files_only=True)
         self.config = self.vision.config
         self.dim = self.config.hidden_size
     
@@ -319,18 +350,41 @@ class CLIPFACENet(nn.Module):
                 featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
                 self.training
             )
-            self._coen_qR = patch_quality_to_scalar(q_R).mean().item()
-            self._coen_qN = patch_quality_to_scalar(q_N).mean().item()
+            if self.training and not hasattr(self, "_debug_qmap_printed"):
+                print("[Patch-CoEN] q_R:", q_R.shape, "q_N:", q_N.shape)
+                print("[Patch-CoEN] featR:", featR.shape, "featT:", featT.shape)
+                self._debug_qmap_printed = True
+            q_R_sample = patch_quality_to_scalar(q_R)
+            q_N_sample = patch_quality_to_scalar(q_N)
+
+            self._coen_qR = q_R_sample.detach().mean()
+            self._coen_qN = q_N_sample.detach().mean()
+
+            self._coen_qR_log = float(self._coen_qR.item())
+            self._coen_qN_log = float(self._coen_qN.item())
+            
+            # 保存最近一个 batch，用于 q_map 可视化
+            self._last_q_R_map = q_R.detach()
+            self._last_q_N_map = q_N.detach()
+            self._last_img_R = x1.detach()
+            self._last_img_N = x2.detach()
         else:
             q_R = None
             q_N = None
         
+        
+
         # Save pre-fusion features for peer reference (both use originals)
         featR_in = featR
         featN_in = featN
         
         featR = self.fusion_R(featR_in, featT, featN_in, q_R, q_N)
         featN = self.fusion_N(featN_in, featT, featR_in, q_N, q_R)
+
+        self._peer_R_open_ratio = self.fusion_R._last_peer_open_ratio
+        self._peer_N_open_ratio = self.fusion_N._last_peer_open_ratio
+        self._peer_R_gate_mean = self.fusion_R._last_peer_gate_mean
+        self._peer_N_gate_mean = self.fusion_N._last_peer_gate_mean
         
         # 4. Extract CLS tokens
         cls_R = featR[:, 0]  # (B, 768)

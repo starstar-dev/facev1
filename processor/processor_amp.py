@@ -9,6 +9,7 @@ from utils.metrics import R1_mAP_eval, R1_mAP
 from torch.cuda import amp
 from model.coen_lite import quality_gate
 import torch.distributed as dist
+from utils.visualize_coen import save_batch_qmap_visualization
 
 
 def kl_div(x, y):
@@ -95,18 +96,26 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
 
                 # CoEN-lite: dynamic quality gating + feature repair
                 # Quality scores are computed by the model (also used for fusion repair)
-                if model.use_coen_lite:
-                    coen_qR = model._coen_qR
-                    coen_qN = model._coen_qN
-                    coen_gR = quality_gate(coen_qR)
-                    coen_gN = quality_gate(coen_qN)
+                raw_model = model.module if hasattr(model, "module") else model
+
+                if raw_model.use_coen_lite:
+                    coen_qR = raw_model._coen_qR
+                    coen_qN = raw_model._coen_qN
+
+                    # patch-level q：局部坏不代表整图废掉，所以 loss gate 要温和
+                    coen_gR = quality_gate(coen_qR, floor=0.7)
+                    coen_gN = quality_gate(coen_qN, floor=0.7)
                     coen_g_pair = (coen_gR + coen_gN) / 2.0
+
                     loss1 = loss1 * coen_gR
                     loss2 = loss2 * coen_gN
                     loss = loss1 + loss2 + loss3
+
+                    coen_qR_log = getattr(raw_model, "_coen_qR_log", float(coen_qR.detach().item()))
+                    coen_qN_log = getattr(raw_model, "_coen_qN_log", float(coen_qN.detach().item()))
                 else:
-                    coen_qR = 1.0
-                    coen_qN = 1.0
+                    coen_qR_log = 1.0
+                    coen_qN_log = 1.0
                     coen_gR = 1.0
                     coen_gN = 1.0
                     coen_g_pair = 1.0
@@ -140,6 +149,19 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode3[0][i], mode2[0][i])
                     loss += part_align
 
+            # 每 5 个 epoch 的第 1 个 batch 保存一次 q_map 可视化
+            raw_model = model.module if hasattr(model, "module") else model
+            if raw_model.use_coen_lite and n_iter == 0 and epoch % 5 == 0:
+                vis_dir = os.path.join(cfg.SAVE_DIR, "coen_vis")
+                print(f"[QMAP SAVE] epoch={epoch}, n_iter={n_iter}, save_dir={vis_dir}")
+
+                save_batch_qmap_visualization(
+                    model,
+                    save_dir=vis_dir,
+                    epoch=epoch,
+                    max_samples=4
+                )
+
             scaler.scale(loss / accum_steps).backward()
             if (n_iter + 1) % accum_steps == 0:
                 scaler.unscale_(optimizer)
@@ -171,13 +193,29 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
             acc_meter2.update(acc2, 1)
             torch.cuda.synchronize()
 
-            if (n_iter + 1) % log_period == 0:
-                logger.info("Epoch[{}] Iteration[{}/{}] CoEN(qR={:.2f},qN={:.2f}) Loss: {:.3f}, Acc: {:.3f},Acc1: {:.3f},Acc2: {:.3f}, Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
-                    .format(epoch, (n_iter + 1), len(train_loader), coen_qR, coen_qN,
-                            loss_meter.avg, acc_meter.avg, acc_meter1.avg, acc_meter2.avg,
-                            scheduler._get_lr(epoch)[0], kl_loss, mcloss,
-                            loss1, loss2, loss3, part_loss, part_align, loss, fce_loss))
+            peer_R_open = getattr(raw_model, "_peer_R_open_ratio", torch.tensor(0.0)).detach().item()
+            peer_N_open = getattr(raw_model, "_peer_N_open_ratio", torch.tensor(0.0)).detach().item()
+            peer_R_mean = getattr(raw_model, "_peer_R_gate_mean", torch.tensor(0.0)).detach().item()
+            peer_N_mean = getattr(raw_model, "_peer_N_gate_mean", torch.tensor(0.0)).detach().item()
 
+            if (n_iter + 1) % log_period == 0:
+                logger.info(
+                    "Epoch[{}] Iteration[{}/{}] "
+                    "CoEN(qR={:.2f},qN={:.2f}) "
+                    "Peer(R_open={:.2f},N_open={:.2f},R_mean={:.3f},N_mean={:.3f}) "
+                    "Loss: {:.3f}, Acc: {:.3f},Acc1: {:.3f},Acc2: {:.3f}, "
+                    "Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},"
+                    "loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, "
+                    "ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
+                    .format(
+                        epoch, (n_iter + 1), len(train_loader),
+                        coen_qR_log, coen_qN_log,
+                        peer_R_open, peer_N_open, peer_R_mean, peer_N_mean,
+                        loss_meter.avg, acc_meter.avg, acc_meter1.avg, acc_meter2.avg,
+                        scheduler._get_lr(epoch)[0], kl_loss, mcloss,
+                        loss1, loss2, loss3, part_loss, part_align, loss, fce_loss
+                    )
+                )
         end_time = time.time()
         time_per_batch = (end_time - start_time) / (n_iter + 1)
         if not cfg.MODEL.DIST_TRAIN:
