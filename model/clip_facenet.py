@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import CLIPVisionModel, CLIPVisionConfig
-from model.coen_lite import compute_combined_quality
+from model.coen_lite import compute_combined_quality, patch_quality_to_scalar
 
 
 def weights_init_kaiming(m):
@@ -84,10 +84,12 @@ class CrossModalFusion(nn.Module):
             feat_query: (B, N, D) — modality to repair (R or N patches)
             feat_T:     (B, N, D) — TI patches, always clean reference
             feat_peer:  (B, N, D) — other modality patches (N for R, R for N)
-            q_self:     (B,) per-sample quality of query [0,1], or None
-            q_peer:     (B,) per-sample quality of peer [0,1], or None
+            q_self:     (B,) scalar or (B, 196) per-patch quality of query [0,1]
+            q_peer:     (B,) scalar or (B, 196) per-patch quality of peer [0,1]
             
-        When q_self/q_peer are None: backward-compatible, no quality gating.
+        Token-level: per-patch quality → per-patch gate → local repair.
+        Scalar q broadcasts to all patches for backward compat.
+        None → no quality gating.
         """
         identity = feat_query
         q = self.norm_q(feat_query)
@@ -98,9 +100,13 @@ class CrossModalFusion(nn.Module):
         attn_T, _ = self.cross_attn_T(q, k_T, v_T)
         
         # Gate TI: worse self → borrow more from TI
-        # q_self=1.0 (clear) → gate=1.0x; q_self=0.15 (bad) → gate=1.85x
+        # Per-patch: (B, 196) → (B, 196, 1), each patch gated independently
+        # Scalar:   (B,)     → (B, 1, 1), broadcasts to all patches
         if q_self is not None:
-            gate_T = (1.0 + (1.0 - q_self)).view(-1, 1, 1)
+            if q_self.dim() == 2:  # (B, 196) per-patch token-level
+                gate_T = (1.0 + (1.0 - q_self)).unsqueeze(-1)  # (B, 196, 1)
+            else:  # (B,) per-sample scalar
+                gate_T = (1.0 + (1.0 - q_self)).view(-1, 1, 1)  # (B, 1, 1)
         else:
             gate_T = 1.0
         
@@ -110,11 +116,13 @@ class CrossModalFusion(nn.Module):
         attn_peer, _ = self.cross_attn_peer(q, k_peer, v_peer)
         
         # Gate peer: only borrow if peer quality > self quality
-        # q_peer=0.9, q_self=0.3 → advantage=0.6 → borrow from peer
-        # q_peer=0.3, q_self=0.9 → advantage=0.0 → ignore peer (peer is worse)
+        # Per-patch: each patch decides independently if peer is better
         if q_self is not None and q_peer is not None:
             peer_advantage = (q_peer - q_self).clamp(0, 1)
-            gate_peer = peer_advantage.view(-1, 1, 1)
+            if peer_advantage.dim() == 2:  # (B, 196) per-patch
+                gate_peer = peer_advantage.unsqueeze(-1)  # (B, 196, 1)
+            else:  # (B,) scalar
+                gate_peer = peer_advantage.view(-1, 1, 1)  # (B, 1, 1)
         else:
             gate_peer = 0.0
         
@@ -311,8 +319,8 @@ class CLIPFACENet(nn.Module):
                 featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
                 self.training
             )
-            self._coen_qR = q_R.mean().item()
-            self._coen_qN = q_N.mean().item()
+            self._coen_qR = patch_quality_to_scalar(q_R).mean().item()
+            self._coen_qN = patch_quality_to_scalar(q_N).mean().item()
         else:
             q_R = None
             q_N = None
