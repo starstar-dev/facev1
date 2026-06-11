@@ -35,17 +35,33 @@ def weights_init_classifier(m):
 
 class CrossModalFusion(nn.Module):
     """
-    Learnable cross-modal fusion using multi-head cross-attention.
-    Q (RGB or NI) attends to K/V (TI — thermal is clean, no flare).
-    Gated residual: output = input + tanh(scale) * attention_output
+    Tri-modal cross-attention fusion for flare repair.
+    
+    Two reference sources for each modality being repaired:
+    1. TI (thermal): always clean, never affected by flare — the anchor
+    2. Peer (N→R or R→N): often less damaged than self
+    
+    Quality-aware per-sample gating:
+    - q_self low → borrow more from TI (always available)
+    - q_peer > q_self → also borrow from peer (it's cleaner)
+    
+    Example: R has flare (q_R=0.3), N is clean (q_N=0.9)
+    → R borrows TI at 1.7x AND N at 0.6x
+    → N borrows TI at 1.1x only, ignores damaged R
     """
     def __init__(self, dim=768, num_heads=8, dropout=0.0):
         super().__init__()
-        self.cross_attn = nn.MultiheadAttention(
+        # TI reference — the anchor, always clean
+        self.cross_attn_T = nn.MultiheadAttention(
+            dim, num_heads, dropout=dropout, batch_first=True
+        )
+        # Peer modality reference — borrow if peer > self
+        self.cross_attn_peer = nn.MultiheadAttention(
             dim, num_heads, dropout=dropout, batch_first=True
         )
         self.norm_q = nn.LayerNorm(dim)
-        self.norm_kv = nn.LayerNorm(dim)
+        self.norm_kv_T = nn.LayerNorm(dim)
+        self.norm_kv_peer = nn.LayerNorm(dim)
         self.norm_out = nn.LayerNorm(dim)
         
         self.ffn = nn.Sequential(
@@ -56,38 +72,61 @@ class CrossModalFusion(nn.Module):
             nn.Dropout(dropout),
         )
         
-        self.gate_attn = nn.Parameter(torch.zeros(1))
+        self.gate_T = nn.Parameter(torch.zeros(1))
+        self.gate_peer = nn.Parameter(torch.zeros(1))
         self.gate_ffn = nn.Parameter(torch.zeros(1))
         
         self.apply(weights_init_kaiming)
     
-    def forward(self, feat_query, feat_key, quality=None):
+    def forward(self, feat_query, feat_T, feat_peer, q_self=None, q_peer=None):
         """
         Args:
-            feat_query: (B, N, D) patches from R or N (modality to repair)
-            feat_key:   (B, N, D) patches from TI (clean reference)
-            quality:    (B,) per-sample quality scores in [0,1], or None
-                        Low quality → more TI borrowing for repair.
+            feat_query: (B, N, D) — modality to repair (R or N patches)
+            feat_T:     (B, N, D) — TI patches, always clean reference
+            feat_peer:  (B, N, D) — other modality patches (N for R, R for N)
+            q_self:     (B,) per-sample quality of query [0,1], or None
+            q_peer:     (B,) per-sample quality of peer [0,1], or None
+            
+        When q_self/q_peer are None: backward-compatible, no quality gating.
         """
         identity = feat_query
         q = self.norm_q(feat_query)
-        k = self.norm_kv(feat_key)
-        v = self.norm_kv(feat_key)
-        attended, _ = self.cross_attn(q, k, v)
         
-        # Quality-aware gating:
-        # - quality=1.0 (clear):   borrow_factor=1.0, normal fusion
-        # - quality=0.2 (bad):     borrow_factor=1.8, 80% more TI repair
-        if quality is not None:
-            borrow_factor = (1.0 + (1.0 - quality)).view(-1, 1, 1)  # (B,1,1)
+        # 1. Cross-attend to TI (the anchor, always available)
+        k_T = self.norm_kv_T(feat_T)
+        v_T = self.norm_kv_T(feat_T)
+        attn_T, _ = self.cross_attn_T(q, k_T, v_T)
+        
+        # Gate TI: worse self → borrow more from TI
+        # q_self=1.0 (clear) → gate=1.0x; q_self=0.15 (bad) → gate=1.85x
+        if q_self is not None:
+            gate_T = (1.0 + (1.0 - q_self)).view(-1, 1, 1)
         else:
-            borrow_factor = 1.0
+            gate_T = 1.0
         
-        feat_query = identity + torch.tanh(self.gate_attn) * attended * borrow_factor
+        # 2. Cross-attend to peer modality (only when peer is cleaner)
+        k_peer = self.norm_kv_peer(feat_peer)
+        v_peer = self.norm_kv_peer(feat_peer)
+        attn_peer, _ = self.cross_attn_peer(q, k_peer, v_peer)
+        
+        # Gate peer: only borrow if peer quality > self quality
+        # q_peer=0.9, q_self=0.3 → advantage=0.6 → borrow from peer
+        # q_peer=0.3, q_self=0.9 → advantage=0.0 → ignore peer (peer is worse)
+        if q_self is not None and q_peer is not None:
+            peer_advantage = (q_peer - q_self).clamp(0, 1)
+            gate_peer = peer_advantage.view(-1, 1, 1)
+        else:
+            gate_peer = 0.0
+        
+        # Combine: self + TI repair + peer repair
+        feat_query = identity \
+                     + torch.tanh(self.gate_T) * attn_T * gate_T \
+                     + torch.tanh(self.gate_peer) * attn_peer * gate_peer
+        
+        # Shared FFN with gated residual
         identity2 = feat_query
         feat_query = identity2 + torch.tanh(self.gate_ffn) * self.ffn(self.norm_out(feat_query))
         return feat_query
-
 
 class CrossPatchAttention(nn.Module):
     """
@@ -262,7 +301,7 @@ class CLIPFACENet(nn.Module):
         else:
             featR_mfmp, featN_mfmp = featR, featN
         
-        # 3. Cross-modal fusion: repair RGB and NI using TI
+        # 3. Tri-modal fusion: repair R using T+N, repair N using T+R
         # Compute per-sample quality for feature-level repair
         if self.use_coen_lite:
             q_R = compute_per_sample_quality(x1)  # (B,)
@@ -273,8 +312,12 @@ class CLIPFACENet(nn.Module):
             q_R = None
             q_N = None
         
-        featR = self.fusion_R(featR, featT, q_R)
-        featN = self.fusion_N(featN, featT, q_N)
+        # Save pre-fusion features for peer reference (both use originals)
+        featR_in = featR
+        featN_in = featN
+        
+        featR = self.fusion_R(featR_in, featT, featN_in, q_R, q_N)
+        featN = self.fusion_N(featN_in, featT, featR_in, q_N, q_R)
         
         # 4. Extract CLS tokens
         cls_R = featR[:, 0]  # (B, 768)
