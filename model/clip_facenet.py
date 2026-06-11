@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import CLIPVisionModel, CLIPVisionConfig
-from model.coen_lite import compute_per_sample_quality
+from model.coen_lite import compute_combined_quality
 
 
 def weights_init_kaiming(m):
@@ -301,11 +301,16 @@ class CLIPFACENet(nn.Module):
         else:
             featR_mfmp, featN_mfmp = featR, featN
         
-        # 3. Tri-modal fusion: repair R using T+N, repair N using T+R
-        # Compute per-sample quality for feature-level repair
+        # 3. CoEN quality detection AFTER MFMP (mirrors original FCE→MFMP dependency)
+        # Original FACENet: MFMP aligns R↔N → FCE detects damage → hard repair
+        # CoEN:           MFMP aligns R↔N → quality from aligned features → soft repair + gate
         if self.use_coen_lite:
-            q_R = compute_per_sample_quality(x1)  # (B,)
-            q_N = compute_per_sample_quality(x2)
+            # Use MFMP-aligned features during training, backbone features at inference
+            q_R, q_N = compute_combined_quality(
+                x1, x2,
+                featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
+                self.training
+            )
             self._coen_qR = q_R.mean().item()
             self._coen_qN = q_N.mean().item()
         else:
