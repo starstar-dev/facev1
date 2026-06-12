@@ -150,25 +150,59 @@ def compute_cross_modal_quality(featR, featN, per_patch=True):
         return (0.15 + 0.85 * quality.clamp(0.0, 1.0)).unsqueeze(-1)
 
 
-def compute_combined_quality(img_R, img_N, featR, featN, training,bad_learn_R=None,bad_learn_N=None):
+def _smooth_patch_map(x):
     """
-    Patch-level modality-specific quality.
-
-    Key idea:
-    - q_cross only measures R/N disagreement.
-    - image-level patch damage decides whether R or N is more likely damaged.
-    - foreground prior suppresses background high-light false positives.
-
-    Returns:
-        q_R, q_N: [B,196,1]
+    Smooth [B,196,1] patch map with 3x3 avg pooling.
+    This reduces noisy isolated learned qmap responses at inference.
     """
+    if x is None:
+        return None
+
+    B, L, C = x.shape
+    h = int(L ** 0.5)
+    w = h
+
+    if h * w != L:
+        return x
+
+    x2d = x.view(B, h, w, C).permute(0, 3, 1, 2)  # [B,1,14,14]
+    x2d = F.avg_pool2d(x2d, kernel_size=3, stride=1, padding=1)
+    x = x2d.permute(0, 2, 3, 1).reshape(B, L, C)
+
+    return x
+
+
+def compute_combined_quality(
+    img_R,
+    img_N,
+    featR,
+    featN,
+    training,
+    bad_learn_R=None,
+    bad_learn_N=None
+):
+    """
+    H2 Hybrid q_map.
+
+    Training:
+        full H2 = 0.15 learned + 0.55 image_prior + 0.30 disagreement attribution
+
+    Inference:
+        lightweight H2 = image_prior-dominant + conservative learned correction
+        learned qmap only works where image prior or disagreement supports damage.
+    """
+
+    # 1. Image prior must be computed first
+    q_img_R, bad_img_R = compute_image_quality_map(img_R)  # [B,196,1]
+    q_img_N, bad_img_N = compute_image_quality_map(img_N)  # [B,196,1]
+
+    # 2. Now bad_img_R/N exist, so zeros_like is safe
     if bad_learn_R is None:
         bad_learn_R = torch.zeros_like(bad_img_R)
     if bad_learn_N is None:
         bad_learn_N = torch.zeros_like(bad_img_N)
-    q_img_R, bad_img_R = compute_image_quality_map(img_R)  # [B,196,1]
-    q_img_N, bad_img_N = compute_image_quality_map(img_N)  # [B,196,1]
 
+    # 3. Foreground prior: suppress border/background false positives
     B = img_R.size(0)
     fg_prior = build_center_foreground_prior(
         batch_size=B,
@@ -176,30 +210,82 @@ def compute_combined_quality(img_R, img_N, featR, featN, training,bad_learn_R=No
         dtype=img_R.dtype
     )
 
-    # 背景区域降低损伤响应
     bad_img_R = bad_img_R * fg_prior
     bad_img_N = bad_img_N * fg_prior
 
-    if training and featR is not None and featN is not None:
-        patches_R = featR[:, 1:, :]
-        patches_N = featN[:, 1:, :]
+    use_feature_quality = featR is not None and featN is not None
 
-        sim = F.cosine_similarity(patches_R, patches_N, dim=-1).unsqueeze(-1)  # [B,196,1]
+    if use_feature_quality:
+        patches_R = featR[:, 1:, :]  # [B,196,768]
+        patches_N = featN[:, 1:, :]  # [B,196,768]
 
-        # R/N 不一致程度，不直接等于 R 坏或 N 坏
+        sim = F.cosine_similarity(patches_R, patches_N, dim=-1).unsqueeze(-1)
+
+        # R/N disagreement. high = R/N token mismatch
         disagree = (1.0 - ((sim - 0.2) / 0.7).clamp(0, 1)).clamp(0, 1)
 
-        # 谁的图像损伤更大，就把 disagreement 更多归因给谁
+        # Attribute disagreement to the modality whose image prior looks worse
         bad_sum = bad_img_R + bad_img_N + 1e-6
         assign_R = bad_img_R / bad_sum
         assign_N = bad_img_N / bad_sum
 
-        bad_R = 0.15 * bad_learn_R + 0.55 * bad_img_R + 0.30 * disagree * assign_R
-        bad_N = 0.15 * bad_learn_N + 0.55 * bad_img_N + 0.30 * disagree * assign_N
-    else:
-        bad_R = bad_img_R
-        bad_N = bad_img_N
+        attrib_R = disagree * assign_R
+        attrib_N = disagree * assign_N
 
+        if training:
+            # 原 H2：训练阶段保留完整 learned qmap 参与
+            bad_R = (
+                0.15 * bad_learn_R
+                + 0.55 * bad_img_R
+                + 0.30 * attrib_R
+            )
+            bad_N = (
+                0.15 * bad_learn_N
+                + 0.55 * bad_img_N
+                + 0.30 * attrib_N
+            )
+
+        else:
+            # 推理轻量 H2：
+            # 1) smooth learned qmap，去掉孤立噪声点
+            # 2) leaned 只在有 image prior 或 disagreement 支持的位置生效
+            # 3) learned 权重从 0.15 降到 0.05
+            bad_learn_R_s = _smooth_patch_map(bad_learn_R)
+            bad_learn_N_s = _smooth_patch_map(bad_learn_N)
+
+            support_R = ((bad_img_R > 0.06) | (attrib_R > 0.08)).float()
+            support_N = ((bad_img_N > 0.06) | (attrib_N > 0.08)).float()
+
+            bad_learn_R_eff = bad_learn_R_s * support_R
+            bad_learn_N_eff = bad_learn_N_s * support_N
+
+            bad_R = (
+                0.0* bad_learn_R_eff
+                + 0.80 * bad_img_R
+                + 0.20 * attrib_R
+            )
+            bad_N = (
+                0.0 * bad_learn_N_eff
+                + 0.80 * bad_img_N
+                + 0.20 * attrib_N
+            )
+
+    else:
+        # 一般不会走到这里，因为 forward 会传 featR_mfmp/featN_mfmp
+        if training:
+            bad_R = 0.15 * bad_learn_R + 0.85 * bad_img_R
+            bad_N = 0.15 * bad_learn_N + 0.85 * bad_img_N
+        else:
+            bad_learn_R_s = _smooth_patch_map(bad_learn_R)
+            bad_learn_N_s = _smooth_patch_map(bad_learn_N)
+
+            support_R = (bad_img_R > 0.06).float()
+            support_N = (bad_img_N > 0.06).float()
+
+            bad_R = 0.05 * bad_learn_R_s * support_R + 0.95 * bad_img_R
+            bad_N = 0.05 * bad_learn_N_s * support_N + 0.95 * bad_img_N
+
+    # bad map -> quality map
     q_R = 1.0 - bad_R.clamp(0, 1)
     q_N = 1.0 - bad_N.clamp(0, 1)
 

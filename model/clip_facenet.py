@@ -352,7 +352,7 @@ class CLIPFACENet(nn.Module):
         featT = self.backbone_ti(x3)
         
         # 2. MFMP: cross-attention between R and N patches (before fusion)
-        if self.use_mfmp and self.training:
+        if self.use_mfmp:
             featR_mfmp, featN_mfmp = self.get_cls_feat_mfmp(featR, featN)
         else:
             featR_mfmp, featN_mfmp = featR, featN
@@ -464,7 +464,7 @@ class CLIPFACENet(nn.Module):
                     sparse_N = bad_prob_N.mean()
 
                     self._qmap_aux_loss = bce_balanced + 0.01 * (sparse_R + sparse_N)
-            # Use MFMP-aligned features during training, backbone features at inference
+            # Use MFMP-aligned features for both training and inference when self.use_mfmp=True
             q_R, q_N = compute_combined_quality(
                 x1, x2,
                 featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
