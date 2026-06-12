@@ -150,7 +150,7 @@ def compute_cross_modal_quality(featR, featN, per_patch=True):
         return (0.15 + 0.85 * quality.clamp(0.0, 1.0)).unsqueeze(-1)
 
 
-def compute_combined_quality(img_R, img_N, featR, featN, training):
+def compute_combined_quality(img_R, img_N, featR, featN, training,bad_learn_R=None,bad_learn_N=None):
     """
     Patch-level modality-specific quality.
 
@@ -162,6 +162,10 @@ def compute_combined_quality(img_R, img_N, featR, featN, training):
     Returns:
         q_R, q_N: [B,196,1]
     """
+    if bad_learn_R is None:
+        bad_learn_R = torch.zeros_like(bad_img_R)
+    if bad_learn_N is None:
+        bad_learn_N = torch.zeros_like(bad_img_N)
     q_img_R, bad_img_R = compute_image_quality_map(img_R)  # [B,196,1]
     q_img_N, bad_img_N = compute_image_quality_map(img_N)  # [B,196,1]
 
@@ -190,8 +194,8 @@ def compute_combined_quality(img_R, img_N, featR, featN, training):
         assign_R = bad_img_R / bad_sum
         assign_N = bad_img_N / bad_sum
 
-        bad_R = 0.65 * bad_img_R + 0.35 * disagree * assign_R
-        bad_N = 0.65 * bad_img_N + 0.35 * disagree * assign_N
+        bad_R = 0.15 * bad_learn_R + 0.55 * bad_img_R + 0.30 * disagree * assign_R
+        bad_N = 0.15 * bad_learn_N + 0.55 * bad_img_N + 0.30 * disagree * assign_N
     else:
         bad_R = bad_img_R
         bad_N = bad_img_N

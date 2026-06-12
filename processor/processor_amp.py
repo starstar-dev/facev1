@@ -113,12 +113,17 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
 
                     coen_qR_log = getattr(raw_model, "_coen_qR_log", float(coen_qR.detach().item()))
                     coen_qN_log = getattr(raw_model, "_coen_qN_log", float(coen_qN.detach().item()))
+
+                    qmap_aux_loss = getattr(raw_model, "_qmap_aux_loss", None)
+                    if qmap_aux_loss is not None:
+                        loss += 0.03 * qmap_aux_loss
                 else:
                     coen_qR_log = 1.0
                     coen_qN_log = 1.0
                     coen_gR = 1.0
                     coen_gN = 1.0
                     coen_g_pair = 1.0
+                    qmap_aux_loss = 0
 
                 if model.use_mfmp and scoreR_forlabel is not None:
                     kl_loss = 0.8 * KL_loss(scoreR_forlabel, scoreN_forlabel)
@@ -186,7 +191,10 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                 acc = (mode1[0][0].max(1)[1] == target).float().mean()
                 acc1 = (mode2[0][0].max(1)[1] == target).float().mean()
                 acc2 = (mode3[0][0].max(1)[1] == target).float().mean()
-
+            if isinstance(qmap_aux_loss, torch.Tensor):
+                qmap_aux_log = qmap_aux_loss.detach().item()
+            else:
+                qmap_aux_log = 0.0
             loss_meter.update(loss.item(), img1.shape[0])
             acc_meter.update(acc, 1)
             acc_meter1.update(acc1, 1)
@@ -207,13 +215,14 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     "Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},"
                     "loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, "
                     "ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
+                    ",qmap_aux:{:.4f}"
                     .format(
                         epoch, (n_iter + 1), len(train_loader),
                         coen_qR_log, coen_qN_log,
                         peer_R_open, peer_N_open, peer_R_mean, peer_N_mean,
                         loss_meter.avg, acc_meter.avg, acc_meter1.avg, acc_meter2.avg,
                         scheduler._get_lr(epoch)[0], kl_loss, mcloss,
-                        loss1, loss2, loss3, part_loss, part_align, loss, fce_loss
+                        loss1, loss2, loss3, part_loss, part_align, loss, fce_loss,qmap_aux_log
                     )
                 )
         end_time = time.time()
@@ -248,6 +257,7 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                 best_index['Rank-1'] = cmc[0]
                 best_index['Rank-5'] = cmc[4]
                 best_index['Rank-10'] = cmc[9]
+                os.makedirs(cfg.OUTPUT_DIR, exist_ok=True)
                 torch.save(model.state_dict(),
                            os.path.join(cfg.SAVE_DIR, cfg.MODEL.NAME + 'best.pth'))
             logger.info("Best mAP: {:.1%}".format(best_index['mAP']))

@@ -259,6 +259,22 @@ class CLIPFACENet(nn.Module):
         self.fusion_R = CrossModalFusion(dim=self.dim)
         self.fusion_N = CrossModalFusion(dim=self.dim)
         
+        self.qmap_head_R = nn.Sequential(
+            nn.LayerNorm(self.dim),
+            nn.Linear(self.dim, self.dim // 4),
+            nn.GELU(),
+            nn.Linear(self.dim // 4, 1)
+        )
+
+        self.qmap_head_N = nn.Sequential(
+            nn.LayerNorm(self.dim),
+            nn.Linear(self.dim, self.dim // 4),
+            nn.GELU(),
+            nn.Linear(self.dim // 4, 1)
+        )
+        # 初始化为“默认大部分 patch 是干净的”
+        nn.init.constant_(self.qmap_head_R[-1].bias, -1.0)
+        nn.init.constant_(self.qmap_head_N[-1].bias, -1.0)
         # MFMP: cross-attention between R and N patches
         self.cross_patch_attn = CrossPatchAttention(dim=self.dim)
         
@@ -329,6 +345,7 @@ class CLIPFACENet(nn.Module):
             Training: (score_R, feat), (score_N, feat), (score_T, feat), RFeat, scoreR_label, NFeat, scoreN_label
             Inference: torch.cat([bn_R, bn_N, bn_T], dim=1)
         """
+        self._qmap_aux_loss = None
         # 1. Extract CLIP features
         featR = self.backbone_rgb(x1)  # (B, 197, 768)
         featN = self.backbone_ni(x2)
@@ -344,11 +361,116 @@ class CLIPFACENet(nn.Module):
         # Original FACENet: MFMP aligns R↔N → FCE detects damage → hard repair
         # CoEN:           MFMP aligns R↔N → quality from aligned features → soft repair + gate
         if self.use_coen_lite:
+            if self.use_coen_lite:
+                bad_logit_R = self.qmap_head_R(featR_mfmp[:, 1:, :])  # [B,196,1]
+                bad_logit_N = self.qmap_head_N(featN_mfmp[:, 1:, :])  # [B,196,1]
+
+                bad_learn_R = torch.sigmoid(bad_logit_R)  # [B,196,1]
+                bad_learn_N = torch.sigmoid(bad_logit_N)  # [B,196,1]
+                # H2 debug: 只打印一次，检查 flare_label 和 learned qmap 是否正常
+                if self.training and not hasattr(self, "_debug_h2_qmap_printed"):
+                    print("\n[H2 DEBUG] ===== qmap head check =====")
+
+                    if flare_label is None:
+                        print("[H2 DEBUG] flare_label: None")
+                    else:
+                        print("[H2 DEBUG] flare_label shape:", flare_label.shape)
+                        print("[H2 DEBUG] flare_label dtype:", flare_label.dtype)
+                        print("[H2 DEBUG] flare_label unique:", torch.unique(flare_label.detach().cpu()))
+                        print("[H2 DEBUG] flare_label mean:",
+                            flare_label.float().detach().mean().item())
+
+                    print("[H2 DEBUG] bad_logit_R mean/min/max:",
+                        bad_logit_R.detach().mean().item(),
+                        bad_logit_R.detach().min().item(),
+                        bad_logit_R.detach().max().item())
+
+                    print("[H2 DEBUG] bad_logit_N mean/min/max:",
+                        bad_logit_N.detach().mean().item(),
+                        bad_logit_N.detach().min().item(),
+                        bad_logit_N.detach().max().item())
+
+                    print("[H2 DEBUG] bad_learn_R mean/min/max:",
+                        bad_learn_R.detach().mean().item(),
+                        bad_learn_R.detach().min().item(),
+                        bad_learn_R.detach().max().item())
+
+                    print("[H2 DEBUG] bad_learn_N mean/min/max:",
+                        bad_learn_N.detach().mean().item(),
+                        bad_learn_N.detach().min().item(),
+                        bad_learn_N.detach().max().item())
+
+                    print("[H2 DEBUG] ===========================\n")
+                    self._debug_h2_qmap_printed = True
+                # 轻量弱监督：只有图像级 flare_label，没有 patch 标注
+                # 思路：
+                # 1. flare 图：允许少量 top-k patch 高响应
+                # 2. 非 flare 图：整体 bad map 应该低
+                # 3. 稀疏约束：避免整张图都变红
+                if self.training and flare_label is not None:
+                    target = flare_label.float().view(-1, 1)  # [B,1]
+
+                    bad_prob_R = bad_learn_R.squeeze(-1)      # [B,196]
+                    bad_prob_N = bad_learn_N.squeeze(-1)
+
+                    bad_logit_R_2d = bad_logit_R.squeeze(-1)  # [B,196]
+                    bad_logit_N_2d = bad_logit_N.squeeze(-1)
+
+                    # top-k patch logits，用 logits 做 BCEWithLogits，AMP 安全
+                    k = max(1, int(bad_logit_R_2d.size(1) * 0.10))
+
+                    pred_logit_R = bad_logit_R_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
+                    pred_logit_N = bad_logit_N_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
+
+                    pos_mask = target.squeeze(1) > 0.5
+                    neg_mask = target.squeeze(1) <= 0.5
+
+                    loss_items = []
+
+                    # 正样本：鼓励 flare 图里 top-k patch 变高
+                    if pos_mask.any():
+                        pos_target = torch.ones_like(pred_logit_R[pos_mask])
+
+                        loss_pos_R = F.binary_cross_entropy_with_logits(
+                            pred_logit_R[pos_mask], pos_target
+                        )
+                        loss_pos_N = F.binary_cross_entropy_with_logits(
+                            pred_logit_N[pos_mask], pos_target
+                        )
+
+                        loss_items.append(0.5 * (loss_pos_R + loss_pos_N))
+
+                    # 负样本：鼓励 non-flare 图 top-k patch 变低
+                    if neg_mask.any():
+                        neg_target = torch.zeros_like(pred_logit_R[neg_mask])
+
+                        loss_neg_R = F.binary_cross_entropy_with_logits(
+                            pred_logit_R[neg_mask], neg_target
+                        )
+                        loss_neg_N = F.binary_cross_entropy_with_logits(
+                            pred_logit_N[neg_mask], neg_target
+                        )
+
+                        # 负样本多，所以权重小一点，防止压扁 qmap
+                        loss_items.append(0.3 * 0.5 * (loss_neg_R + loss_neg_N))
+
+                    if len(loss_items) > 0:
+                        bce_balanced = sum(loss_items)
+                    else:
+                        bce_balanced = bad_prob_R.mean() * 0.0
+
+                    # 稀疏项降低，避免把 learned qmap 过度压平
+                    sparse_R = bad_prob_R.mean()
+                    sparse_N = bad_prob_N.mean()
+
+                    self._qmap_aux_loss = bce_balanced + 0.01 * (sparse_R + sparse_N)
             # Use MFMP-aligned features during training, backbone features at inference
             q_R, q_N = compute_combined_quality(
                 x1, x2,
                 featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
-                self.training
+                self.training,
+                bad_learn_R=bad_learn_R,
+                bad_learn_N=bad_learn_N
             )
             if self.training and not hasattr(self, "_debug_qmap_printed"):
                 print("[Patch-CoEN] q_R:", q_R.shape, "q_N:", q_N.shape)

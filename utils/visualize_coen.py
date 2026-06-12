@@ -44,13 +44,57 @@ def save_qmap_overlay(img, q_map, save_path, title="q_map"):
         align_corners=False
     )[0, 0].numpy()
 
-    plt.figure(figsize=(5, 5))
+    bad_max = float(bad_map.max())
+    bad_mean = float(bad_map.mean())
+    q_min = float(1.0 - bad_map.max())
+    q_mean = float(1.0 - bad_map.mean())
+
+    plt.figure(figsize=(6, 6))
+
+    # 先画原图
     plt.imshow(img_np)
-    plt.imshow(bad_map, cmap="jet", alpha=0.45)
-    plt.title(title)
+
+    # 再叠加 bad map，固定真实尺度
+    plt.imshow(
+        bad_map,
+        cmap="jet",
+        alpha=0.45,
+        vmin=0.0,
+        vmax=1.0
+    )
+
+    plt.colorbar(fraction=0.046, pad=0.04)
+
+    bad_min = float(bad_map.min())
+    bad_max = float(bad_map.max())
+    bad_mean = float(bad_map.mean())
+
+    plt.title(
+        f"{title}\n"
+        f"bad_min={bad_min:.3f}, bad_mean={bad_mean:.3f}, bad_max={bad_max:.3f}"
+    )
+
     plt.axis("off")
     plt.tight_layout()
     plt.savefig(save_path, dpi=180)
+    plt.close()
+    plt.figure(figsize=(6, 6))
+    plt.imshow(img_np)
+    plt.imshow(
+        bad_map,
+        cmap="jet",
+        alpha=0.45,
+        vmin=0.0,
+        vmax=0.4
+    )
+    plt.colorbar(fraction=0.046, pad=0.04)
+    plt.title(
+        f"{title} diagnostic vmax=0.4\n"
+        f"bad_min={bad_min:.3f}, bad_mean={bad_mean:.3f}, bad_max={bad_max:.3f}"
+    )
+    plt.axis("off")
+    plt.tight_layout()
+    plt.savefig(save_path.replace(".png", "_vmax04.png"), dpi=180)
     plt.close()
 
 
