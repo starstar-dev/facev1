@@ -546,26 +546,42 @@ class CLIPFACENet(nn.Module):
     
     def load_param(self, trained_path):
         param_dict = torch.load(trained_path, map_location="cpu")
+
         if isinstance(param_dict, dict) and "state_dict" in param_dict:
             param_dict = param_dict["state_dict"]
 
+        own_state = self.state_dict()
         new_param = {}
+
         for k, v in param_dict.items():
-            # 兼容 DataParallel 保存的 module.xxx
             if k.startswith("module."):
                 k = k[7:]
 
-            # 兼容旧版 CLIPVisionModel 命名：
-            # old: backbone_rgb.vision.vision_model.embeddings...
-            # new: backbone_rgb.vision.embeddings...
-            k = k.replace(".vision.vision_model.", ".vision.")
+            candidates = [k]
 
-            new_param[k] = v
+            # 兼容两种 CLIP key:
+            # old: backbone_rgb.vision.embeddings...
+            # new: backbone_rgb.vision.vision_model.embeddings...
+            if ".vision.vision_model." in k:
+                candidates.append(k.replace(".vision.vision_model.", ".vision."))
+            elif ".vision." in k:
+                candidates.append(k.replace(".vision.", ".vision.vision_model.", 1))
+
+            loaded = False
+            for kk in candidates:
+                if kk in own_state and own_state[kk].shape == v.shape:
+                    new_param[kk] = v
+                    loaded = True
+                    break
 
         msg = self.load_state_dict(new_param, strict=False)
 
         print(f"Loaded pretrained model from {trained_path}")
-        print("[load_param] missing keys:", len(msg.missing_keys))
-        print("[load_param] unexpected keys:", len(msg.unexpected_keys))
-        print("[load_param] first missing:", msg.missing_keys[:20])
-        print("[load_param] first unexpected:", msg.unexpected_keys[:20])
+        print(f"[load_param] loaded keys: {len(new_param)}")
+        print(f"[load_param] missing keys: {len(msg.missing_keys)}")
+        print(f"[load_param] unexpected keys: {len(msg.unexpected_keys)}")
+
+        if len(msg.missing_keys) > 0:
+            print(f"[load_param] first missing: {msg.missing_keys[:20]}")
+        if len(msg.unexpected_keys) > 0:
+            print(f"[load_param] first unexpected: {msg.unexpected_keys[:20]}")

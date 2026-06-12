@@ -260,14 +260,14 @@ def compute_combined_quality(
             bad_learn_N_eff = bad_learn_N_s * support_N
 
             bad_R = (
-                0.0* bad_learn_R_eff
-                + 0.80 * bad_img_R
-                + 0.20 * attrib_R
+                0.05* bad_learn_R_eff
+                + 0.70* bad_img_R
+                + 0.25 * attrib_R
             )
             bad_N = (
-                0.0 * bad_learn_N_eff
-                + 0.80 * bad_img_N
-                + 0.20 * attrib_N
+                0.05 * bad_learn_N_eff
+                + 0.70 * bad_img_N
+                + 0.25 * attrib_N
             )
 
     else:
