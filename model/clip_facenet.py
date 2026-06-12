@@ -545,8 +545,27 @@ class CLIPFACENet(nn.Module):
             return torch.cat([bn_R, bn_N, bn_T], dim=1)
     
     def load_param(self, trained_path):
-        param_dict = torch.load(trained_path)
-        if 'state_dict' in param_dict:
-            param_dict = param_dict['state_dict']
-        self.load_state_dict(param_dict, strict=False)
-        print(f'Loaded pretrained model from {trained_path}')
+        param_dict = torch.load(trained_path, map_location="cpu")
+        if isinstance(param_dict, dict) and "state_dict" in param_dict:
+            param_dict = param_dict["state_dict"]
+
+        new_param = {}
+        for k, v in param_dict.items():
+            # 兼容 DataParallel 保存的 module.xxx
+            if k.startswith("module."):
+                k = k[7:]
+
+            # 兼容旧版 CLIPVisionModel 命名：
+            # old: backbone_rgb.vision.vision_model.embeddings...
+            # new: backbone_rgb.vision.embeddings...
+            k = k.replace(".vision.vision_model.", ".vision.")
+
+            new_param[k] = v
+
+        msg = self.load_state_dict(new_param, strict=False)
+
+        print(f"Loaded pretrained model from {trained_path}")
+        print("[load_param] missing keys:", len(msg.missing_keys))
+        print("[load_param] unexpected keys:", len(msg.unexpected_keys))
+        print("[load_param] first missing:", msg.missing_keys[:20])
+        print("[load_param] first unexpected:", msg.unexpected_keys[:20])
