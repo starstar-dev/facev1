@@ -24,6 +24,60 @@ def KL_loss(a, b):
 def MC_loss(scoreR, scoreN, scoreT):
     return KL_loss(scoreR, scoreN) + KL_loss(scoreT, scoreN)
 
+def _main_feat(feat_pack):
+    if isinstance(feat_pack, (list, tuple)):
+        return feat_pack[0]
+    return feat_pack
+
+
+def cross_modal_supcon_loss(feat_R, feat_N, feat_T, labels, temperature=0.07, eps=1e-8):
+    """
+    Strict cross-modal supervised contrastive loss.
+
+    Positive:
+        same vehicle ID AND different modality
+
+    Negative:
+        different vehicle ID
+
+    feat_R/N/T: [B, D]
+    labels:     [B]
+    """
+    B = feat_R.size(0)
+    device = feat_R.device
+
+    features = torch.cat([feat_R, feat_N, feat_T], dim=0).float()  # [3B, D]
+    features = F.normalize(features, dim=1)
+
+    labels_all = labels.repeat(3).view(-1, 1)  # [3B, 1]
+
+    modal_ids = torch.cat([
+        torch.zeros(B, device=device, dtype=torch.long),
+        torch.ones(B, device=device, dtype=torch.long),
+        torch.full((B,), 2, device=device, dtype=torch.long),
+    ], dim=0).view(-1, 1)
+
+    sim = torch.matmul(features, features.t()) / temperature
+    sim = sim - sim.max(dim=1, keepdim=True)[0].detach()
+
+    self_mask = torch.eye(3 * B, device=device)
+
+    same_id = labels_all.eq(labels_all.t())
+    diff_modal = modal_ids.ne(modal_ids.t())
+
+    pos_mask = (same_id & diff_modal).float()
+    pos_mask = pos_mask * (1.0 - self_mask)
+
+    exp_sim = torch.exp(sim) * (1.0 - self_mask)
+    log_prob = sim - torch.log(exp_sim.sum(dim=1, keepdim=True) + eps)
+
+    pos_count = pos_mask.sum(dim=1)
+    loss = -(pos_mask * log_prob).sum(dim=1) / (pos_count + eps)
+
+    valid = pos_count > 0
+    if valid.any():
+        return loss[valid].mean()
+    return features.new_tensor(0.0)
 
 log_period = 20
 eval_period = 1
@@ -91,6 +145,8 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                 part_loss = 0
                 part_align = 0
                 fce_loss = 0
+                cm_supcon = 0
+                cm_w = 0.0
 
                 loss = loss1 + loss2 + loss3
 
@@ -135,6 +191,26 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     if model.use_coen_lite:
                         mcloss = mcloss * coen_g_pair
                     loss += mcloss
+                # Cross-modal SupCon:
+                # 拉近同 ID 的 RGB/NIR/TI 特征，推远不同 ID
+                # 注意：只做跨模态正样本，不重复做同模态约束
+                feat_R = _main_feat(mode1[1])
+                feat_N = _main_feat(mode2[1])
+                feat_T = _main_feat(mode3[1])
+
+                cm_supcon = cross_modal_supcon_loss(
+                    feat_R,
+                    feat_N,
+                    feat_T,
+                    target,
+                    temperature=0.07
+                )
+
+                # warmup，避免前几轮特征还没稳定时强行对齐
+                cm_w = 0.03 * min(1.0, max(0.0, (epoch - 5) / 15.0))
+
+                loss += cm_w * cm_supcon
+
                 if model.use_fce and fce_feats is not None:
                     bn_R, bn_N, bn_T = fce_feats
                     fce_loss = 0.5 * (F.mse_loss(bn_R, bn_T) + F.mse_loss(bn_N, bn_T))
@@ -215,14 +291,17 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     "Base Lr: {:.2e},biloss:{:.3f},icloss:{:.3f},"
                     "loss1:{:.3f}, loss2:{:.3f}, loss3:{:.3f}, "
                     "ploss:{:.3f},palign:{:.3f},total_loss:{:.3f},fceloss:{:.4f}"
-                    ",qmap_aux:{:.4f}"
+                    ",qmap_aux:{:.4f},cmsup:{:.4f},cmw:{:.3f}"
                     .format(
                         epoch, (n_iter + 1), len(train_loader),
                         coen_qR_log, coen_qN_log,
                         peer_R_open, peer_N_open, peer_R_mean, peer_N_mean,
                         loss_meter.avg, acc_meter.avg, acc_meter1.avg, acc_meter2.avg,
                         scheduler._get_lr(epoch)[0], kl_loss, mcloss,
-                        loss1, loss2, loss3, part_loss, part_align, loss, fce_loss,qmap_aux_log
+                        loss1, loss2, loss3, part_loss, part_align, loss, fce_loss,
+                        qmap_aux_log,
+                        cm_supcon.detach().item() if isinstance(cm_supcon, torch.Tensor) else 0.0,
+                        cm_w
                     )
                 )
         end_time = time.time()
