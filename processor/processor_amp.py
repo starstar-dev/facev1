@@ -100,7 +100,11 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
         if torch.cuda.device_count() > 1 and cfg.MODEL.DIST_TRAIN:
             print('Using {} GPUs'.format(torch.cuda.device_count()))
             model = nn.DataParallel(model)
-    evaluator = R1_mAP_eval(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM, cfg=cfg)
+    # 改为按数据集选择:
+    if cfg.DATASETS.NAMES == "MSVR310":
+        evaluator = R1_mAP(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM)
+    else:
+        evaluator = R1_mAP_eval(num_query, max_rank=50, feat_norm=cfg.TEST.FEAT_NORM, cfg=cfg)
     best_index = {'mAP': 0.0, 'Rank-1': 0.0, 'Rank-5': 0.0, 'Rank-10': 0.0}
 
     loss_meter = AverageMeter()
@@ -323,7 +327,7 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     target = vid.to(device)
                     feat = model(img1, img2, img3, target, flare_label=flare_label)
                     if cfg.DATASETS.NAMES == "MSVR310":
-                        evaluator.update((feat, vid, camid, viewids, img_paths))
+                        evaluator.update((feat, vid, camid,  viewids,img_paths))
                     else:
                         evaluator.update((feat, vid, camid, img_paths))
             cmc, mAP, _, _, _, _, _ = evaluator.compute()
