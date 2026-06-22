@@ -3,6 +3,7 @@ CLIP-FACENet v2 Training Script.
 Supports MFMP and MC Loss.
 """
 from utils.logger import setup_logger
+from utils.ablation import ABLATION_CONFIGS, apply_ablation_config, format_ablation_flags
 from datasets import make_dataloader
 from model.clip_facenet import CLIPFACENet
 from solver import make_optimizer
@@ -39,6 +40,8 @@ if __name__ == '__main__':
     parser.add_argument("--IC_param", default='0.8', type=float)
     parser.add_argument("--use_mfmp", default=1, type=int, help="Enable MFMP")
     parser.add_argument("--use_mcloss", default=1, type=int, help="Enable MC Loss")
+    parser.add_argument("--ablation", default=None, choices=list(ABLATION_CONFIGS.keys()),
+                        help="Use centralized ablation switches")
     args = parser.parse_args()
 
     if args.config_file != "":
@@ -72,6 +75,10 @@ if __name__ == '__main__':
     model.use_mcloss = bool(args.use_mcloss)
     model.use_fce = False
     model.use_mfmp = bool(args.use_mfmp)
+    if args.ablation is not None:
+        exp_name, exp_cfg = apply_ablation_config(model, args.ablation)
+        logger.info(f'Ablation {exp_name}: {exp_cfg["desc"]}')
+        logger.info(f'Ablation flags: {format_ablation_flags(model)}')
     logger.info(f'MFMP enabled: {model.use_mfmp}')
     logger.info(f'MC Loss enabled: {model.use_mcloss}')
     logger.info(f'Model params: {sum(p.numel() for p in model.parameters())/1e6:.1f}M')

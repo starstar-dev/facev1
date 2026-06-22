@@ -179,13 +179,7 @@ def compute_combined_quality(
     featN,
     training,
     bad_learn_R=None,
-    bad_learn_N=None,
-    w_learned_train=0.15,
-    w_img_train=0.55,
-    w_disagree_train=0.30,
-    w_learned_eval=0.05,
-    w_img_eval=0.70,
-    w_disagree_eval=0.25
+    bad_learn_N=None
 ):
     """
     H2 Hybrid q_map.
@@ -241,14 +235,14 @@ def compute_combined_quality(
         if training:
             # 原 H2：训练阶段保留完整 learned qmap 参与
             bad_R = (
-                w_learned_train * bad_learn_R
-                + w_img_train * bad_img_R
-                + w_disagree_train * attrib_R
+                0.15 * bad_learn_R
+                + 0.55 * bad_img_R
+                + 0.30 * attrib_R
             )
             bad_N = (
-                w_learned_train * bad_learn_N
-                + w_img_train * bad_img_N
-                + w_disagree_train * attrib_N
+                0.15 * bad_learn_N
+                + 0.55 * bad_img_N
+                + 0.30 * attrib_N
             )
 
         else:
@@ -266,21 +260,21 @@ def compute_combined_quality(
             bad_learn_N_eff = bad_learn_N_s * support_N
 
             bad_R = (
-                w_learned_eval * bad_learn_R_eff
-                + w_img_eval * bad_img_R
-                + w_disagree_eval * attrib_R
+                0.05* bad_learn_R_eff
+                + 0.70* bad_img_R
+                + 0.25 * attrib_R
             )
             bad_N = (
-                w_learned_eval * bad_learn_N_eff
-                + w_img_eval * bad_img_N
-                + w_disagree_eval * attrib_N
+                0.05 * bad_learn_N_eff
+                + 0.70 * bad_img_N
+                + 0.25 * attrib_N
             )
 
     else:
         # 一般不会走到这里，因为 forward 会传 featR_mfmp/featN_mfmp
         if training:
-            bad_R = w_learned_train * bad_learn_R + w_img_train * bad_img_R
-            bad_N = w_learned_train * bad_learn_N + w_img_train * bad_img_N
+            bad_R = 0.15 * bad_learn_R + 0.85 * bad_img_R
+            bad_N = 0.15 * bad_learn_N + 0.85 * bad_img_N
         else:
             bad_learn_R_s = _smooth_patch_map(bad_learn_R)
             bad_learn_N_s = _smooth_patch_map(bad_learn_N)
@@ -288,8 +282,8 @@ def compute_combined_quality(
             support_R = (bad_img_R > 0.06).float()
             support_N = (bad_img_N > 0.06).float()
 
-            bad_R = w_learned_eval * bad_learn_R_s * support_R + w_img_eval * bad_img_R
-            bad_N = w_learned_eval * bad_learn_N_s * support_N + w_img_eval * bad_img_N
+            bad_R = 0.05 * bad_learn_R_s * support_R + 0.95 * bad_img_R
+            bad_N = 0.05 * bad_learn_N_s * support_N + 0.95 * bad_img_N
 
     # bad map -> quality map
     q_R = 1.0 - bad_R.clamp(0, 1)

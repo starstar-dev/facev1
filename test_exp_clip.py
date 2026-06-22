@@ -5,11 +5,12 @@ from datasets import make_dataloader
 from model.clip_facenet import CLIPFACENet
 from processor import do_inference_amp as do_inference
 from utils.logger import setup_logger
+from utils.ablation import ABLATION_CONFIGS, apply_ablation_config, format_ablation_flags
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--exp", default="G", choices=["F", "G"])
+    parser.add_argument("--exp", "--ablation", default="full", choices=list(ABLATION_CONFIGS.keys()))
     parser.add_argument("--config_file", default="configs/WMVeID863/clip_facenet_wmveid863.yml")
     parser.add_argument("opts", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
@@ -30,7 +31,9 @@ if __name__ == "__main__":
     model.use_mcloss = True
     model.use_fce = False
     model.use_mfmp = True
-    model.use_coen_lite = True
+    exp_name, exp_cfg = apply_ablation_config(model, args.exp)
+    logger.info(f"Ablation {exp_name}: {exp_cfg['desc']}")
+    logger.info(f"Ablation flags: {format_ablation_flags(model)}")
 
     model.load_param(cfg.TEST.WEIGHT)
 

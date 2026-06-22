@@ -317,13 +317,6 @@ class CLIPFACENet(nn.Module):
         self.use_fce = False
         self.use_mfmp = False
         self.use_coen_lite = False
-        self.use_fusion = True
-        self.use_quality_loss_gate = True
-        self.use_supcon = True
-        self.coen_use_learned_qmap = True
-        self.coen_use_image_prior = True
-        self.coen_use_disagreement = True
-        self.use_qmap_aux_loss = True
     
     def get_cls_feat_mfmp(self, featR, featN):
         """
@@ -368,7 +361,7 @@ class CLIPFACENet(nn.Module):
         # Original FACENet: MFMP aligns R↔N → FCE detects damage → hard repair
         # CoEN:           MFMP aligns R↔N → quality from aligned features → soft repair + gate
         if self.use_coen_lite:
-            if self.coen_use_learned_qmap:
+            if self.use_coen_lite:
                 bad_logit_R = self.qmap_head_R(featR_mfmp[:, 1:, :])  # [B,196,1]
                 bad_logit_N = self.qmap_head_N(featN_mfmp[:, 1:, :])  # [B,196,1]
 
@@ -414,7 +407,7 @@ class CLIPFACENet(nn.Module):
                 # 1. flare 图：允许少量 top-k patch 高响应
                 # 2. 非 flare 图：整体 bad map 应该低
                 # 3. 稀疏约束：避免整张图都变红
-                if self.training and flare_label is not None and self.use_qmap_aux_loss:
+                if self.training and flare_label is not None:
                     target = flare_label.float().view(-1, 1)  # [B,1]
 
                     bad_prob_R = bad_learn_R.squeeze(-1)      # [B,196]
@@ -471,22 +464,13 @@ class CLIPFACENet(nn.Module):
                     sparse_N = bad_prob_N.mean()
 
                     self._qmap_aux_loss = bce_balanced + 0.01 * (sparse_R + sparse_N)
-            else:
-                bad_learn_R = None
-                bad_learn_N = None
             # Use MFMP-aligned features for both training and inference when self.use_mfmp=True
             q_R, q_N = compute_combined_quality(
                 x1, x2,
                 featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
                 self.training,
                 bad_learn_R=bad_learn_R,
-                bad_learn_N=bad_learn_N,
-                w_learned_train=0.15 if self.coen_use_learned_qmap else 0.0,
-                w_img_train=0.55 if self.coen_use_image_prior else 0.0,
-                w_disagree_train=0.30 if self.coen_use_disagreement else 0.0,
-                w_learned_eval=0.05 if self.coen_use_learned_qmap else 0.0,
-                w_img_eval=0.70 if self.coen_use_image_prior else 0.0,
-                w_disagree_eval=0.25 if self.coen_use_disagreement else 0.0
+                bad_learn_N=bad_learn_N
             )
             if self.training and not hasattr(self, "_debug_qmap_printed"):
                 print("[Patch-CoEN] q_R:", q_R.shape, "q_N:", q_N.shape)
@@ -516,21 +500,13 @@ class CLIPFACENet(nn.Module):
         featR_in = featR
         featN_in = featN
         
-        if self.use_fusion:
-            featR = self.fusion_R(featR_in, featT, featN_in, q_R, q_N)
-            featN = self.fusion_N(featN_in, featT, featR_in, q_N, q_R)
+        featR = self.fusion_R(featR_in, featT, featN_in, q_R, q_N)
+        featN = self.fusion_N(featN_in, featT, featR_in, q_N, q_R)
 
-            self._peer_R_open_ratio = self.fusion_R._last_peer_open_ratio
-            self._peer_N_open_ratio = self.fusion_N._last_peer_open_ratio
-            self._peer_R_gate_mean = self.fusion_R._last_peer_gate_mean
-            self._peer_N_gate_mean = self.fusion_N._last_peer_gate_mean
-        else:
-            featR = featR_in
-            featN = featN_in
-            self._peer_R_open_ratio = torch.tensor(0.0, device=featT.device)
-            self._peer_N_open_ratio = torch.tensor(0.0, device=featT.device)
-            self._peer_R_gate_mean = torch.tensor(0.0, device=featT.device)
-            self._peer_N_gate_mean = torch.tensor(0.0, device=featT.device)
+        self._peer_R_open_ratio = self.fusion_R._last_peer_open_ratio
+        self._peer_N_open_ratio = self.fusion_N._last_peer_open_ratio
+        self._peer_R_gate_mean = self.fusion_R._last_peer_gate_mean
+        self._peer_N_gate_mean = self.fusion_N._last_peer_gate_mean
         
         # 4. Extract CLS tokens
         cls_R = featR[:, 0]  # (B, 768)

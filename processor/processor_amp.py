@@ -161,22 +161,20 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                 if raw_model.use_coen_lite:
                     coen_qR = raw_model._coen_qR
                     coen_qN = raw_model._coen_qN
-
-                    # patch-level q：局部坏不代表整图废掉，所以 loss gate 要温和
-                    coen_gR = quality_gate(coen_qR, floor=0.7)
-                    coen_gN = quality_gate(coen_qN, floor=0.7)
-                    coen_g_pair = (coen_gR + coen_gN) / 2.0
-
-                    loss1 = loss1 * coen_gR
-                    loss2 = loss2 * coen_gN
-                    loss = loss1 + loss2 + loss3
-
                     coen_qR_log = getattr(raw_model, "_coen_qR_log", float(coen_qR.detach().item()))
                     coen_qN_log = getattr(raw_model, "_coen_qN_log", float(coen_qN.detach().item()))
-
                     qmap_aux_loss = getattr(raw_model, "_qmap_aux_loss", None)
-                    if qmap_aux_loss is not None:
-                        loss += 0.03 * qmap_aux_loss
+
+                    if raw_model.use_quality_loss_gate:
+                        coen_gR = quality_gate(coen_qR, floor=0.85)
+                        coen_gN = quality_gate(coen_qN, floor=0.85)
+                        coen_g_pair = (coen_gR + coen_gN) / 2.0
+                        loss1 = loss1 * coen_gR
+                        loss2 = loss2 * coen_gN
+                    else:
+                        coen_gR = 1.0
+                        coen_gN = 1.0
+                        coen_g_pair = 1.0
                 else:
                     coen_qR_log = 1.0
                     coen_qN_log = 1.0
@@ -185,35 +183,39 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     coen_g_pair = 1.0
                     qmap_aux_loss = 0
 
+                loss = loss1 + loss2 + loss3
+                if qmap_aux_loss is not None:
+                    loss += 0.01 * qmap_aux_loss
+
                 if model.use_mfmp and scoreR_forlabel is not None:
                     kl_loss = 0.8 * KL_loss(scoreR_forlabel, scoreN_forlabel)
-                    if model.use_coen_lite:
+                    if raw_model.use_quality_loss_gate:
                         kl_loss = kl_loss * coen_g_pair
                     loss += kl_loss
                 if model.use_mcloss:
                     mcloss = MC_loss(mode1[0][0], mode2[0][0], mode3[0][0])
-                    if model.use_coen_lite:
+                    if raw_model.use_quality_loss_gate:
                         mcloss = mcloss * coen_g_pair
                     loss += mcloss
-                # Cross-modal SupCon:
-                # 拉近同 ID 的 RGB/NIR/TI 特征，推远不同 ID
-                # 注意：只做跨模态正样本，不重复做同模态约束
-                feat_R = _main_feat(mode1[1])
-                feat_N = _main_feat(mode2[1])
-                feat_T = _main_feat(mode3[1])
 
-                cm_supcon = cross_modal_supcon_loss(
-                    feat_R,
-                    feat_N,
-                    feat_T,
-                    target,
-                    temperature=0.07
-                )
+                if raw_model.use_supcon:
+                    feat_R = _main_feat(mode1[1])
+                    feat_N = _main_feat(mode2[1])
+                    feat_T = _main_feat(mode3[1])
 
-                # warmup，避免前几轮特征还没稳定时强行对齐
-                cm_w = 0.03 * min(1.0, max(0.0, (epoch - 5) / 15.0))
+                    cm_supcon = cross_modal_supcon_loss(
+                        feat_R,
+                        feat_N,
+                        feat_T,
+                        target,
+                        temperature=0.07
+                    )
 
-                loss += cm_w * cm_supcon
+                    cm_w = 0.02 * min(1.0, max(0.0, (epoch - 5) / 15.0))
+                    loss += cm_w * cm_supcon
+                else:
+                    cm_supcon = 0
+                    cm_w = 0.0
 
                 if model.use_fce and fce_feats is not None:
                     bn_R, bn_N, bn_T = fce_feats
@@ -233,7 +235,7 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode1[0][i], mode2[0][i])
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode3[0][i], mode2[0][i])
                     loss += part_align
-
+            '''
             # 每 5 个 epoch 的第 1 个 batch 保存一次 q_map 可视化
             raw_model = model.module if hasattr(model, "module") else model
             if raw_model.use_coen_lite and n_iter == 0 and epoch % 5 == 0:
@@ -246,7 +248,7 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     epoch=epoch,
                     max_samples=4
                 )
-
+            '''
             scaler.scale(loss / accum_steps).backward()
             if (n_iter + 1) % accum_steps == 0:
                 scaler.unscale_(optimizer)

@@ -1,9 +1,7 @@
 """
-Removal ablation runner for CLIP-FACENet.
-Use --exp/--ablation names matching the paper table.
+Unified experiment runner for v2 grid: A (baseline) through E (flare+dropout).
 """
 from utils.logger import setup_logger
-from utils.ablation import ABLATION_CONFIGS, apply_ablation_config, format_ablation_flags
 from datasets import make_dataloader
 from model.clip_facenet import CLIPFACENet
 from solver import make_optimizer
@@ -20,15 +18,31 @@ def set_seed(seed):
     torch.backends.cudnn.deterministic = True
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="CLIP-FACENet removal ablation runner")
-    parser.add_argument("--exp", "--ablation", default="full", choices=list(ABLATION_CONFIGS.keys()))
+EXP_CONFIGS = {
+    'A': {'flare_sampler': False, 'dropout': 0.0, 'desc': 'v2 baseline'},
+    'B': {'flare_sampler': True,  'dropout': 0.0, 'desc': 'v2 + flare-balanced sampler'},
+    'C': {'flare_sampler': False, 'dropout': 0.1, 'desc': 'v2 + modality dropout p=0.1'},
+    'D': {'flare_sampler': False, 'dropout': 0.2, 'desc': 'v2 + modality dropout p=0.2'},
+    'E': {'flare_sampler': True,  'dropout': 0.1, 'desc': 'v2 + flare sampler + dropout p=0.1'},
+    'F': {'flare_sampler': False, 'dropout': 0.0, 'coen_lite': True,  'desc': 'v2 + CoEN-lite quality gate'},
+    'G': {'flare_sampler': True,  'dropout': 0.0, 'coen_lite': True,  'desc': 'v2 + CoEN-lite + flare sampler'},
+}
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="v2 Experiment Grid")
+    parser.add_argument("--exp", default="A", choices=['A','B','C','D','E','F','G'])
     parser.add_argument("--config_file", default="configs/WMVeID863/clip_facenet_wmveid863.yml", type=str)
     parser.add_argument("--epochs", default=150, type=int)
     parser.add_argument("--local_rank", default=0, type=int)
-    parser.add_argument("--IC_param", default="0.8", type=float)
+    parser.add_argument("--IC_param", default='0.8', type=float)
     parser.add_argument("opts", default=None, nargs=argparse.REMAINDER)
     args = parser.parse_args()
+
+    exp_cfg = EXP_CONFIGS[args.exp]
+    use_flare = exp_cfg['flare_sampler']
+    mdrop = exp_cfg['dropout']
+    use_coen = exp_cfg.get('coen_lite', False)
 
     if args.config_file != "":
         cfg.merge_from_file(args.config_file)
@@ -37,38 +51,33 @@ if __name__ == "__main__":
     cfg.IC_param = args.IC_param
 
     now = datetime.datetime.now()
-    strtime = now.strftime("%Y_%m_%d_%H_%M_%S")
-    output_dir = cfg.OUTPUT_DIR + f"_abl_{args.exp}_" + strtime
+    strtime = now.strftime('%Y_%m_%d_%H_%M_%S')
+    label = f'exp{args.exp}'
+    if use_flare: label += '_flare'
+    if mdrop > 0: label += f'_md{int(mdrop*100)}'
+    if use_coen: label += '_coenlite'
+    output_dir = cfg.OUTPUT_DIR + f'_grid_{label}_' + strtime
     os.makedirs(output_dir, exist_ok=True)
     cfg.SAVE_DIR = output_dir
     cfg.freeze()
 
     set_seed(cfg.SOLVER.SEED)
-    setup_logger("transreid", output_dir, "train_log")
-
+    setup_logger('transreid', output_dir, 'train_log')
+    
     import logging
     logger = logging.getLogger("transreid.image_train")
-    exp_name = args.exp
-    exp_cfg = ABLATION_CONFIGS[exp_name]
+    logger.info(f'Experiment {args.exp}: {exp_cfg["desc"]}')
+    logger.info(f'Flare sampler: {use_flare}, Modality dropout: {mdrop}, CoEN-lite: {use_coen}')
 
     train_loader, train_loader_normal, val_loader, num_query, num_classes, num_cameras = \
-        make_dataloader(
-            cfg,
-            use_flare_sampler=exp_cfg["flare_sampler"],
-            modality_dropout=exp_cfg["modality_dropout"],
-        )
+        make_dataloader(cfg, use_flare_sampler=use_flare, modality_dropout=mdrop)
 
     model = CLIPFACENet(num_classes=num_classes, cfg=cfg)
     model.use_mamba_enhance = False
+    model.use_mcloss = True
     model.use_fce = False
-
-    exp_name, exp_cfg = apply_ablation_config(model, args.exp)
-    logger.info(f"Ablation {exp_name}: {exp_cfg['desc']}")
-    logger.info(
-        f"Data flags: flare_sampler={exp_cfg['flare_sampler']}, "
-        f"modality_dropout={exp_cfg['modality_dropout']}"
-    )
-    logger.info(f"Ablation flags: {format_ablation_flags(model)}")
+    model.use_mfmp = True
+    model.use_coen_lite = use_coen
 
     loss_func, center_criterion = make_loss(cfg, num_classes=num_classes)
     optimizer, optimizer_center = make_optimizer(cfg, model, center_criterion)
