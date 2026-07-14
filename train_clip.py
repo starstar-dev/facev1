@@ -40,6 +40,8 @@ if __name__ == '__main__':
     parser.add_argument("--IC_param", default='0.8', type=float)
     parser.add_argument("--use_mfmp", default=1, type=int, help="Enable MFMP")
     parser.add_argument("--use_mcloss", default=1, type=int, help="Enable MC Loss")
+    parser.add_argument("--start_epoch", default=0, type=int)
+    parser.add_argument("--resume_weight", default="", type=str)
     parser.add_argument("--ablation", default=None, choices=list(ABLATION_CONFIGS.keys()),
                         help="Use centralized ablation switches")
     args = parser.parse_args()
@@ -47,6 +49,7 @@ if __name__ == '__main__':
     if args.config_file != "":
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
+    cfg.SOLVER.START_EPOCH = args.start_epoch
 
     now = datetime.datetime.now()
     strtime = now.strftime('%Y_%m_%d_%H_%M_%S')
@@ -79,6 +82,8 @@ if __name__ == '__main__':
         exp_name, exp_cfg = apply_ablation_config(model, args.ablation)
         logger.info(f'Ablation {exp_name}: {exp_cfg["desc"]}')
         logger.info(f'Ablation flags: {format_ablation_flags(model)}')
+    if args.resume_weight:
+        model.load_param(args.resume_weight)
     logger.info(f'MFMP enabled: {model.use_mfmp}')
     logger.info(f'MC Loss enabled: {model.use_mcloss}')
     logger.info(f'Model params: {sum(p.numel() for p in model.parameters())/1e6:.1f}M')

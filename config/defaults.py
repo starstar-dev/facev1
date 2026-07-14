@@ -118,6 +118,8 @@ _C.SOLVER = CN()
 _C.SOLVER.OPTIMIZER_NAME = "Adam"
 # Number of max epoches
 _C.SOLVER.MAX_EPOCHS = 100
+# Global epoch offset used when fine-tuning from an existing checkpoint.
+_C.SOLVER.START_EPOCH = 0
 # Base learning rate
 _C.SOLVER.BASE_LR = 3e-4
 # Whether using larger learning rate for fc layer

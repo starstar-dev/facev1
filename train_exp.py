@@ -25,6 +25,8 @@ if __name__ == "__main__":
     parser.add_argument("--exp", "--ablation", default="full", choices=list(ABLATION_CONFIGS.keys()))
     parser.add_argument("--config_file", default="configs/WMVeID863/clip_facenet_wmveid863.yml", type=str)
     parser.add_argument("--epochs", default=150, type=int)
+    parser.add_argument("--start_epoch", default=0, type=int)
+    parser.add_argument("--resume_weight", default="", type=str)
     parser.add_argument("--local_rank", default=0, type=int)
     parser.add_argument("--IC_param", default="0.8", type=float)
     parser.add_argument("opts", default=None, nargs=argparse.REMAINDER)
@@ -34,6 +36,7 @@ if __name__ == "__main__":
         cfg.merge_from_file(args.config_file)
     cfg.merge_from_list(args.opts)
     cfg.SOLVER.MAX_EPOCHS = args.epochs
+    cfg.SOLVER.START_EPOCH = args.start_epoch
     cfg.IC_param = args.IC_param
 
     now = datetime.datetime.now()
@@ -63,6 +66,8 @@ if __name__ == "__main__":
     model.use_fce = False
 
     exp_name, exp_cfg = apply_ablation_config(model, args.exp)
+    if args.resume_weight:
+        model.load_param(args.resume_weight)
     logger.info(f"Ablation {exp_name}: {exp_cfg['desc']}")
     logger.info(
         f"Data flags: flare_sampler={exp_cfg['flare_sampler']}, "

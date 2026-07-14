@@ -115,9 +115,11 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
     start_time = time.time()
     
     epochs = cfg.SOLVER.MAX_EPOCHS
+    start_epoch = cfg.SOLVER.START_EPOCH if hasattr(cfg.SOLVER, "START_EPOCH") else 0
     accum_steps = cfg.SOLVER.GRAD_ACCUM_STEPS if hasattr(cfg.SOLVER, 'GRAD_ACCUM_STEPS') else 1
 
     for epoch in range(1, epochs + 1):
+        global_epoch = start_epoch + epoch
         model.train()
         optimizer.zero_grad()
         optimizer_center.zero_grad()
@@ -166,8 +168,9 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     qmap_aux_loss = getattr(raw_model, "_qmap_aux_loss", None)
 
                     if raw_model.use_quality_loss_gate:
-                        coen_gR = quality_gate(coen_qR, floor=0.85)
-                        coen_gN = quality_gate(coen_qN, floor=0.85)
+                        gate_floor = 0.85 
+                        coen_gR = quality_gate(coen_qR, floor=gate_floor)
+                        coen_gN = quality_gate(coen_qN, floor=gate_floor)
                         coen_g_pair = (coen_gR + coen_gN) / 2.0
                         loss1 = loss1 * coen_gR
                         loss2 = loss2 * coen_gN
@@ -185,7 +188,8 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
 
                 loss = loss1 + loss2 + loss3
                 if qmap_aux_loss is not None:
-                    loss += 0.01 * qmap_aux_loss
+                    qmap_w = 0.03 
+                    loss += qmap_w * qmap_aux_loss
 
                 if model.use_mfmp and scoreR_forlabel is not None:
                     kl_loss = 0.8 * KL_loss(scoreR_forlabel, scoreN_forlabel)
@@ -211,8 +215,15 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                         temperature=0.07
                     )
 
-                    cm_w = 0.02 * min(1.0, max(0.0, (epoch - 5) / 15.0))
+                    cm_w = 0.03 * min(1.0, max(0.0, (global_epoch - 5) / 15.0))
+                    '''
+                    if epoch <= 80:
+                        cm_w = 0.03 * min(1.0, max(0.0, (epoch - 5) / 15.0))
+                    else:
+                        cm_w = 0.015
+                    '''
                     loss += cm_w * cm_supcon
+                    
                 else:
                     cm_supcon = 0
                     cm_w = 0.0
@@ -235,10 +246,10 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode1[0][i], mode2[0][i])
                         part_align += PART_ALIGN_WEIGHT * KL_loss(mode3[0][i], mode2[0][i])
                     loss += part_align
-            '''
+
             # 每 5 个 epoch 的第 1 个 batch 保存一次 q_map 可视化
             raw_model = model.module if hasattr(model, "module") else model
-            if raw_model.use_coen_lite and n_iter == 0 and epoch % 5 == 0:
+            if raw_model.use_coen_lite and n_iter == 0 and epoch in [40, 55, 85]:
                 vis_dir = os.path.join(cfg.SAVE_DIR, "coen_vis")
                 print(f"[QMAP SAVE] epoch={epoch}, n_iter={n_iter}, save_dir={vis_dir}")
 
@@ -248,7 +259,7 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
                     epoch=epoch,
                     max_samples=4
                 )
-            '''
+
             scaler.scale(loss / accum_steps).backward()
             if (n_iter + 1) % accum_steps == 0:
                 scaler.unscale_(optimizer)

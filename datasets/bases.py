@@ -133,7 +133,7 @@ class ImageDataset(Dataset):
 
     def __len__(self):
         return len(self.dataset)
-
+    
     def get_exposure_fake_label(self,r,n,t):
         r = to_tensor(r)
         n = to_tensor(n)
@@ -147,7 +147,8 @@ class ImageDataset(Dataset):
         else:
             overexposure = 0
         return overexposure
-
+    
+    
    
         
     def __getitem__(self, index):

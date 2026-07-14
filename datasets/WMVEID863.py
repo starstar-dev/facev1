@@ -43,7 +43,6 @@ class WMVEID863(BaseImageDataset):
         for vid in vids:
             id_vimgs = os.listdir(os.path.join(folder, vid, "vis"))
             id_nimgs = os.listdir(os.path.join(folder, vid, "ni"))
-            # print(vid)
             id_timgs = os.listdir(os.path.join(folder, vid, "th"))
             for i, img in enumerate(id_vimgs):
                 vpath = os.path.join(folder, vid, "vis", id_vimgs[i])
