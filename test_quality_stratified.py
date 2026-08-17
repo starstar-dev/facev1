@@ -127,7 +127,37 @@ def main():
     qf = feats[:num_query]
     gf = feats[num_query:]
     distmat = euclidean_distance(qf, gf)
+    # ---- E4: Hard/Normal subset ----
+    hard_split_dir = "./hard_normal_splits/WMVeID863/"
+    hard_path = os.path.join(hard_split_dir, "hard_queries.txt")
+    normal_path = os.path.join(hard_split_dir, "normal_queries.txt")
+    if os.path.exists(hard_path) and os.path.exists(normal_path):
+        with open(hard_path) as f:
+            hard_idx = [int(l.strip()) for l in f if l.strip()]
+        with open(normal_path) as f:
+            normal_idx = [int(l.strip()) for l in f if l.strip()]
 
+        r_hard = evaluate_group(distmat, pids, camids, sceneids, num_query, hard_idx, cfg.DATASETS.NAMES)
+        r_normal = evaluate_group(distmat, pids, camids, sceneids, num_query, normal_idx, cfg.DATASETS.NAMES)
+
+        # Full mAP
+        q_pids = np.asarray(pids[:num_query])
+        g_pids = np.asarray(pids[num_query:])
+        q_camids = np.asarray(camids[:num_query])
+        g_camids = np.asarray(camids[num_query:])
+        _, mAP_full, _ = eval_func(distmat, q_pids, g_pids, q_camids, g_camids)
+
+        mAP_hard = r_hard[0] if r_hard else 0
+        mAP_normal = r_normal[0] if r_normal else 0
+        Nh, Nn = len(hard_idx), len(normal_idx)
+        mAP_w = (Nh * mAP_hard + Nn * mAP_normal) / (Nh + Nn)
+
+        logger.info(f"--- E4 Hard/Normal ---")
+        logger.info(f"Full:    {mAP_full*100:.1f}%")
+        logger.info(f"Hard:    {mAP_hard*100:.1f}% ({Nh})")
+        logger.info(f"Normal:  {mAP_normal*100:.1f}% ({Nn})")
+        logger.info(f"Weighted:{mAP_w*100:.1f}%")
+        logger.info(f"Diff:    {(mAP_full - mAP_w)*100:+.2f}%")
     groups = split_query_groups(quality_scores, flare_labels, num_query, args.stratify)
     for name, indices in groups.items():
         result = evaluate_group(distmat, pids, camids, sceneids, num_query, indices, cfg.DATASETS.NAMES)

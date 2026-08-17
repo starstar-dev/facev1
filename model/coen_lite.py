@@ -58,7 +58,7 @@ def compute_image_quality_map(img, patch_size=16):
     B, C, H, W = img.shape
     assert H % patch_size == 0 and W % patch_size == 0
 
-    # CLIP denorm，避免直接在 normalized 空间判断亮度
+    # CLIP denorm
     mean = img.new_tensor([0.48145466, 0.4578275, 0.40821073]).view(1, 3, 1, 1)
     std = img.new_tensor([0.26862954, 0.26130258, 0.27577711]).view(1, 3, 1, 1)
     x = (img * std + mean).clamp(0, 1)
@@ -67,13 +67,9 @@ def compute_image_quality_map(img, patch_size=16):
     max_rgb = x.max(dim=1, keepdim=True).values
     min_rgb = x.min(dim=1, keepdim=True).values
 
-    # 1) 高亮 / 过曝
     over = (max_rgb > 0.88).float()
-
-    # 2) 近白区域，车灯/反光常见
     near_white = ((max_rgb > 0.82) & ((max_rgb - min_rgb) < 0.18)).float()
 
-    # 3) 纹理损失：梯度太低但亮度高，更像耀斑/过曝
     dx = torch.abs(gray[:, :, :, 1:] - gray[:, :, :, :-1])
     dx = F.pad(dx, (0, 1, 0, 0))
     dy = torch.abs(gray[:, :, 1:, :] - gray[:, :, :-1, :])
@@ -106,11 +102,9 @@ def build_center_foreground_prior(batch_size, device, dtype, h=14, w=14):
         indexing="ij"
     )
 
-    # 车辆一般在 crop 中心，边缘/底部背景适当压低
     dist2 = (xx / 0.95) ** 2 + (yy / 0.85) ** 2
     prior = torch.exp(-dist2)
 
-    # 不完全屏蔽边缘，只是降权
     prior = 0.35 + 0.65 * prior
     prior = prior.reshape(1, h * w, 1).expand(batch_size, -1, -1)
 
@@ -133,27 +127,23 @@ def compute_cross_modal_quality(featR, featN, per_patch=True):
     Returns:
         quality: (B, 196) or (B,) in [0.15, 1.0]
     """
-    # Exclude CLS token, compare patch tokens
-    patches_R = featR[:, 1:, :]  # (B, 196, 768)
+    patches_R = featR[:, 1:, :]
     patches_N = featN[:, 1:, :]
     
-    # Per-patch cosine similarity after MFMP alignment
-    sim = F.cosine_similarity(patches_R, patches_N, dim=-1)  # (B, 196)
+    sim = F.cosine_similarity(patches_R, patches_N, dim=-1)
     
     if per_patch:
-        # Token-level: each patch has its own quality score
         quality = (sim - 0.2) / 0.7
-        return 0.15 + 0.85 * quality.clamp(0.0, 1.0)  # (B, 196)
+        return 0.15 + 0.85 * quality.clamp(0.0, 1.0)
     else:
-        mean_sim = sim.mean(dim=1)  # (B,)
+        mean_sim = sim.mean(dim=1)
         quality = (mean_sim - 0.2) / 0.7
         return (0.15 + 0.85 * quality.clamp(0.0, 1.0)).unsqueeze(-1)
 
 
 def _smooth_patch_map(x):
     """
-    Smooth [B,196,1] patch map with 3x3 avg pooling.
-    This reduces noisy isolated learned qmap responses at inference.
+    Smooth [B,L,1] patch map with 3x3 avg pooling.
     """
     if x is None:
         return None
@@ -165,7 +155,7 @@ def _smooth_patch_map(x):
     if h * w != L:
         return x
 
-    x2d = x.view(B, h, w, C).permute(0, 3, 1, 2)  # [B,1,14,14]
+    x2d = x.view(B, h, w, C).permute(0, 3, 1, 2)
     x2d = F.avg_pool2d(x2d, kernel_size=3, stride=1, padding=1)
     x = x2d.permute(0, 2, 3, 1).reshape(B, L, C)
 
@@ -198,39 +188,50 @@ def compute_combined_quality(
         learned qmap only works where image prior or disagreement supports damage.
     """
 
-    # 1. Image prior must be computed first
-    q_img_R, bad_img_R = compute_image_quality_map(img_R)  # [B,196,1]
-    q_img_N, bad_img_N = compute_image_quality_map(img_N)  # [B,196,1]
+    # 1. Image prior (always 14×14 = 196 for 224×224 input)
+    q_img_R, bad_img_R = compute_image_quality_map(img_R)
+    q_img_N, bad_img_N = compute_image_quality_map(img_N)
 
-    # 2. Now bad_img_R/N exist, so zeros_like is safe
+    # 2. Learned qmap (if absent, init as zeros)
     if bad_learn_R is None:
         bad_learn_R = torch.zeros_like(bad_img_R)
     if bad_learn_N is None:
         bad_learn_N = torch.zeros_like(bad_img_N)
 
-    # 3. Foreground prior: suppress border/background false positives
+    # 3. Foreground prior
     B = img_R.size(0)
-    fg_prior = build_center_foreground_prior(
-        batch_size=B,
-        device=img_R.device,
-        dtype=img_R.dtype
-    )
+    fg_prior = build_center_foreground_prior(B, img_R.device, img_R.dtype)
 
     bad_img_R = bad_img_R * fg_prior
     bad_img_N = bad_img_N * fg_prior
 
     use_feature_quality = featR is not None and featN is not None
 
+    # --- Resize image priors to match feature patch count (for CNN backbones) ---
     if use_feature_quality:
-        patches_R = featR[:, 1:, :]  # [B,196,768]
-        patches_N = featN[:, 1:, :]  # [B,196,768]
+        num_feat_patches = featR[:, 1:, :].size(1)  # 196 ViT, 49 CNN (7×7)
+        if num_feat_patches != 196:
+            h_new = int(num_feat_patches ** 0.5)
+            def _resize(p):
+                p2d = p.reshape(B, 14, 14, 1).permute(0, 3, 1, 2)
+                p2d = F.interpolate(p2d, size=(h_new, h_new),
+                                    mode='bilinear', align_corners=False)
+                return p2d.permute(0, 2, 3, 1).reshape(B, num_feat_patches, 1)
+            bad_img_R = _resize(bad_img_R)
+            bad_img_N = _resize(bad_img_N)
+            q_img_R = _resize(q_img_R)
+            q_img_N = _resize(q_img_N)
+            bad_learn_R = _resize(bad_learn_R)
+            bad_learn_N = _resize(bad_learn_N)
+
+    if use_feature_quality:
+        patches_R = featR[:, 1:, :]
+        patches_N = featN[:, 1:, :]
 
         sim = F.cosine_similarity(patches_R, patches_N, dim=-1).unsqueeze(-1)
 
-        # R/N disagreement. high = R/N token mismatch
         disagree = (1.0 - ((sim - 0.2) / 0.7).clamp(0, 1)).clamp(0, 1)
 
-        # Attribute disagreement to the modality whose image prior looks worse
         bad_sum = bad_img_R + bad_img_N + 1e-6
         assign_R = bad_img_R / bad_sum
         assign_N = bad_img_N / bad_sum
@@ -239,7 +240,6 @@ def compute_combined_quality(
         attrib_N = disagree * assign_N
 
         if training:
-            # 原 H2：训练阶段保留完整 learned qmap 参与
             bad_R = (
                 w_learned_train * bad_learn_R
                 + w_img_train * bad_img_R
@@ -250,12 +250,7 @@ def compute_combined_quality(
                 + w_img_train * bad_img_N
                 + w_disagree_train * attrib_N
             )
-
         else:
-            # 推理轻量 H2：
-            # 1) smooth learned qmap，去掉孤立噪声点
-            # 2) leaned 只在有 image prior 或 disagreement 支持的位置生效
-            # 3) learned 权重从 0.15 降到 0.05
             bad_learn_R_s = _smooth_patch_map(bad_learn_R)
             bad_learn_N_s = _smooth_patch_map(bad_learn_N)
 
@@ -275,26 +270,20 @@ def compute_combined_quality(
                 + w_img_eval * bad_img_N
                 + w_disagree_eval * attrib_N
             )
-
     else:
-        # 一般不会走到这里，因为 forward 会传 featR_mfmp/featN_mfmp
         if training:
             bad_R = w_learned_train * bad_learn_R + w_img_train * bad_img_R
             bad_N = w_learned_train * bad_learn_N + w_img_train * bad_img_N
         else:
             bad_learn_R_s = _smooth_patch_map(bad_learn_R)
             bad_learn_N_s = _smooth_patch_map(bad_learn_N)
-
             support_R = (bad_img_R > 0.06).float()
             support_N = (bad_img_N > 0.06).float()
-
             bad_R = w_learned_eval * bad_learn_R_s * support_R + w_img_eval * bad_img_R
             bad_N = w_learned_eval * bad_learn_N_s * support_N + w_img_eval * bad_img_N
 
-    # bad map -> quality map
     q_R = 1.0 - bad_R.clamp(0, 1)
     q_N = 1.0 - bad_N.clamp(0, 1)
-
     q_R = 0.15 + 0.85 * q_R
     q_N = 0.15 + 0.85 * q_N
 
@@ -304,21 +293,13 @@ def compute_combined_quality(
 def patch_quality_to_scalar(q, worst_ratio=0.3):
     """
     Aggregate patch-level quality to sample-level quality.
-
-    Args:
-        q: [B, 196, 1] or [B, 196] or [B]
-    Returns:
-        q_sample: [B]
     """
     if q is None:
         return None
-
     if q.dim() == 1:
         return q
-
     if q.dim() == 3:
         q = q.squeeze(-1)
-
     k = max(1, int(q.size(1) * worst_ratio))
     return q.topk(k, dim=1, largest=False).values.mean(dim=1)
 

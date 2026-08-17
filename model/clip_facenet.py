@@ -51,8 +51,15 @@ class CrossModalFusion(nn.Module):
     → R borrows TI at 1.7x AND N at 0.6x
     → N borrows TI at 1.1x only, ignores damaged R
     """
-    def __init__(self, dim=768, num_heads=8, dropout=0.0):
+    def __init__(self, dim=768, num_heads=8, dropout=0.0,
+                 use_tir_anchor=True, peer_margin=0.03, ti_strength=1.0):
         super().__init__()
+        # E3: whether to use TI as fixed anchor reference
+        self.use_tir_anchor = use_tir_anchor
+        # E5: hyperparameters for sensitivity analysis
+        self.peer_margin = peer_margin
+        self.ti_strength = ti_strength
+
         # TI reference — the anchor, always clean
         self.cross_attn_T = nn.MultiheadAttention(
             dim, num_heads, dropout=dropout, batch_first=True
@@ -88,18 +95,17 @@ class CrossModalFusion(nn.Module):
             feat_peer:  (B, N, D) — other modality patches (N for R, R for N)
             q_self:     (B,) scalar or (B, 196) per-patch quality of query [0,1]
             q_peer:     (B,) scalar or (B, 196) per-patch quality of peer [0,1]
-            
-        Token-level: per-patch quality → per-patch gate → local repair.
-        Scalar q broadcasts to all patches for backward compat.
-        None → no quality gating.
         """
         identity = feat_query
         q = self.norm_q(feat_query)
         
-        # 1. Cross-attend to TI (the anchor, always available)
-        k_T = self.norm_kv_T(feat_T)
-        v_T = self.norm_kv_T(feat_T)
-        attn_T, _ = self.cross_attn_T(q, k_T, v_T)
+        # 1. Cross-attend to TI (the anchor) — skip if use_tir_anchor=False (E3)
+        if self.use_tir_anchor:
+            k_T = self.norm_kv_T(feat_T)
+            v_T = self.norm_kv_T(feat_T)
+            attn_T, _ = self.cross_attn_T(q, k_T, v_T)
+        else:
+            attn_T = torch.zeros_like(feat_query)
 
         # 2. Cross-attend to peer modality
         k_peer = self.norm_kv_peer(feat_peer)
@@ -112,13 +118,13 @@ class CrossModalFusion(nn.Module):
         q_peer_token = self._quality_to_token_gate(q_peer, N)
 
         if q_self_token is not None:
-            gate_T = 1.0 + (1.0 - q_self_token)  # [B,197,1]
+            gate_T = 1.0 + self.ti_strength * (1.0 - q_self_token)  # E5: ti_strength
         else:
             gate_T = 1.0
 
         if q_self_token is not None and q_peer_token is not None:
             peer_adv = q_peer_token - q_self_token
-            gate_peer = ((peer_adv - 0.03) / 0.25).clamp(0, 1) # [B,197,1]
+            gate_peer = ((peer_adv - self.peer_margin) / 0.25).clamp(0, 1)  # E5: peer_margin
         else:
             gate_peer = 0.0
 
@@ -132,9 +138,14 @@ class CrossModalFusion(nn.Module):
             self._last_peer_open_ratio = torch.tensor(0.0, device=feat_query.device)
         
         # Combine: self + TI repair + peer repair
-        feat_query = identity \
-                     + torch.tanh(self.gate_T) * attn_T * gate_T \
-                     + torch.tanh(self.gate_peer) * attn_peer * gate_peer
+        if self.use_tir_anchor:
+            feat_query = identity \
+                         + torch.tanh(self.gate_T) * attn_T * gate_T \
+                         + torch.tanh(self.gate_peer) * attn_peer * gate_peer
+        else:
+            # E3: RGB↔NI mutual only, no TI anchor
+            feat_query = identity \
+                         + torch.tanh(self.gate_peer) * attn_peer * gate_peer
         
         # Shared FFN with gated residual
         identity2 = feat_query
@@ -218,6 +229,23 @@ class CrossPatchAttention(nn.Module):
         return R_out, N_out
 
 
+class GlobalStaticWeight(nn.Module):
+    """
+    E2 ablation: learned global scalar per modality (replaces TPQE).
+    Returns (B,) scalar quality for each modality via softmax-normalized weights.
+    """
+    def __init__(self):
+        super().__init__()
+        self.w_R = nn.Parameter(torch.zeros(1))
+        self.w_N = nn.Parameter(torch.zeros(1))
+        self.w_T = nn.Parameter(torch.zeros(1))
+
+    def forward(self, B, device):
+        raw = torch.cat([self.w_R, self.w_N, self.w_T], dim=0)  # [3]
+        w = torch.softmax(raw, dim=0)  # [3], sums to 1
+        return w[0].expand(B), w[1].expand(B), w[2].expand(B)
+
+
 class CLIPBackbone(nn.Module):
     """Wrapper around CLIPVisionModel for ReID feature extraction."""
     def __init__(self, model_name='/root/autodl-tmp/pretrained/clip-vit-base-patch16', freeze_blocks=0):
@@ -272,11 +300,14 @@ class CLIPFACENet(nn.Module):
             nn.GELU(),
             nn.Linear(self.dim // 4, 1)
         )
-        # 初始化为“默认大部分 patch 是干净的”
+        # 初始化为"默认大部分 patch 是干净的"
         nn.init.constant_(self.qmap_head_R[-1].bias, -1.0)
         nn.init.constant_(self.qmap_head_N[-1].bias, -1.0)
         # MFMP: cross-attention between R and N patches
         self.cross_patch_attn = CrossPatchAttention(dim=self.dim)
+
+        # E2: global static weight (used when use_global_static_fusion=True)
+        self.global_static_weight = GlobalStaticWeight()
         
         # BNNeck for each modality
         self.bottleneck_R = nn.BatchNorm1d(self.dim)
@@ -298,7 +329,6 @@ class CLIPFACENet(nn.Module):
         self.classifier_T.apply(weights_init_classifier)
         
         # MFMP label classifiers (separate branches for R and N)
-        # These mirror the original FACENet b_R_label / b_N_label structure
         self.bottleneck_R_label = nn.BatchNorm1d(self.dim)
         self.bottleneck_R_label.bias.requires_grad_(False)
         self.bottleneck_R_label.apply(weights_init_kaiming)
@@ -324,6 +354,7 @@ class CLIPFACENet(nn.Module):
         self.coen_use_image_prior = True
         self.coen_use_disagreement = True
         self.use_qmap_aux_loss = True
+        self.use_global_static_fusion = False
     
     def get_cls_feat_mfmp(self, featR, featN):
         """
@@ -343,6 +374,15 @@ class CLIPFACENet(nn.Module):
         outN = torch.cat([tokenN, patchesN], dim=1)
         
         return outR, outN
+
+    def _compute_global_static_quality(self, x):
+        """
+        E2: Per-sample global scalar quality.
+        Returns q_R, q_N as (B,) — same scalar for all patches.
+        """
+        B = x.size(0)
+        w_R, w_N, _w_T = self.global_static_weight(B, x.device)
+        return w_R, w_N
     
     def forward(self, x1, x2, x3, label=None, cam_label=None, view_label=None, flare_label=None):
         """
@@ -364,155 +404,133 @@ class CLIPFACENet(nn.Module):
         else:
             featR_mfmp, featN_mfmp = featR, featN
         
-        # 3. CoEN quality detection AFTER MFMP (mirrors original FCE→MFMP dependency)
-        # Original FACENet: MFMP aligns R↔N → FCE detects damage → hard repair
-        # CoEN:           MFMP aligns R↔N → quality from aligned features → soft repair + gate
+        # 3. CoEN quality detection AFTER MFMP
         if self.use_coen_lite:
-            if self.coen_use_learned_qmap:
-                bad_logit_R = self.qmap_head_R(featR_mfmp[:, 1:, :])  # [B,196,1]
-                bad_logit_N = self.qmap_head_N(featN_mfmp[:, 1:, :])  # [B,196,1]
+            # ---- E2 short-circuit: global static quality, skip all TPQE ----
+            if getattr(self, 'use_global_static_fusion', False):
+                q_R, q_N = self._compute_global_static_quality(x1)  # both (B,)
+                q_R_sample = q_R
+                q_N_sample = q_N
 
-                bad_learn_R = torch.sigmoid(bad_logit_R)  # [B,196,1]
-                bad_learn_N = torch.sigmoid(bad_logit_N)  # [B,196,1]
-                # H2 debug: 只打印一次，检查 flare_label 和 learned qmap 是否正常
-                if self.training and not hasattr(self, "_debug_h2_qmap_printed"):
-                    print("\n[H2 DEBUG] ===== qmap head check =====")
-
-                    if flare_label is None:
-                        print("[H2 DEBUG] flare_label: None")
-                    else:
-                        print("[H2 DEBUG] flare_label shape:", flare_label.shape)
-                        print("[H2 DEBUG] flare_label dtype:", flare_label.dtype)
-                        print("[H2 DEBUG] flare_label unique:", torch.unique(flare_label.detach().cpu()))
-                        print("[H2 DEBUG] flare_label mean:",
-                            flare_label.float().detach().mean().item())
-
-                    print("[H2 DEBUG] bad_logit_R mean/min/max:",
-                        bad_logit_R.detach().mean().item(),
-                        bad_logit_R.detach().min().item(),
-                        bad_logit_R.detach().max().item())
-
-                    print("[H2 DEBUG] bad_logit_N mean/min/max:",
-                        bad_logit_N.detach().mean().item(),
-                        bad_logit_N.detach().min().item(),
-                        bad_logit_N.detach().max().item())
-
-                    print("[H2 DEBUG] bad_learn_R mean/min/max:",
-                        bad_learn_R.detach().mean().item(),
-                        bad_learn_R.detach().min().item(),
-                        bad_learn_R.detach().max().item())
-
-                    print("[H2 DEBUG] bad_learn_N mean/min/max:",
-                        bad_learn_N.detach().mean().item(),
-                        bad_learn_N.detach().min().item(),
-                        bad_learn_N.detach().max().item())
-
-                    print("[H2 DEBUG] ===========================\n")
-                    self._debug_h2_qmap_printed = True
-                # 轻量弱监督：只有图像级 flare_label，没有 patch 标注
-                # 思路：
-                # 1. flare 图：允许少量 top-k patch 高响应
-                # 2. 非 flare 图：整体 bad map 应该低
-                # 3. 稀疏约束：避免整张图都变红
-                if self.training and flare_label is not None and self.use_qmap_aux_loss:
-                    target = flare_label.float().view(-1, 1)  # [B,1]
-
-                    bad_prob_R = bad_learn_R.squeeze(-1)      # [B,196]
-                    bad_prob_N = bad_learn_N.squeeze(-1)
-
-                    bad_logit_R_2d = bad_logit_R.squeeze(-1)  # [B,196]
-                    bad_logit_N_2d = bad_logit_N.squeeze(-1)
-
-                    # top-k patch logits，用 logits 做 BCEWithLogits，AMP 安全
-                    k = max(1, int(bad_logit_R_2d.size(1) * 0.10))
-
-                    pred_logit_R = bad_logit_R_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
-                    pred_logit_N = bad_logit_N_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
-
-                    pos_mask = target.squeeze(1) > 0.5
-                    neg_mask = target.squeeze(1) <= 0.5
-
-                    loss_items = []
-
-                    # 正样本：鼓励 flare 图里 top-k patch 变高
-                    if pos_mask.any():
-                        pos_target = torch.ones_like(pred_logit_R[pos_mask])
-
-                        loss_pos_R = F.binary_cross_entropy_with_logits(
-                            pred_logit_R[pos_mask], pos_target
-                        )
-                        loss_pos_N = F.binary_cross_entropy_with_logits(
-                            pred_logit_N[pos_mask], pos_target
-                        )
-
-                        loss_items.append(0.5 * (loss_pos_R + loss_pos_N))
-
-                    # 负样本：鼓励 non-flare 图 top-k patch 变低
-                    if neg_mask.any():
-                        neg_target = torch.zeros_like(pred_logit_R[neg_mask])
-
-                        loss_neg_R = F.binary_cross_entropy_with_logits(
-                            pred_logit_R[neg_mask], neg_target
-                        )
-                        loss_neg_N = F.binary_cross_entropy_with_logits(
-                            pred_logit_N[neg_mask], neg_target
-                        )
-
-                        # 负样本多，所以权重小一点，防止压扁 qmap
-                        loss_items.append(0.3 * 0.5 * (loss_neg_R + loss_neg_N))
-
-                    if len(loss_items) > 0:
-                        bce_balanced = sum(loss_items)
-                    else:
-                        bce_balanced = bad_prob_R.mean() * 0.0
-
-                    # 稀疏项降低，避免把 learned qmap 过度压平
-                    sparse_R = bad_prob_R.mean()
-                    sparse_N = bad_prob_N.mean()
-
-                    self._qmap_aux_loss = bce_balanced + 0.01 * (sparse_R + sparse_N)
+                self._coen_qR = q_R.detach().mean()
+                self._coen_qN = q_N.detach().mean()
+                self._coen_qR_log = float(self._coen_qR.item())
+                self._coen_qN_log = float(self._coen_qN.item())
+                self._last_q_R_map = None
+                self._last_q_N_map = None
+                self._last_img_R = None
+                self._last_img_N = None
+                self._qmap_aux_loss = None
+            # ---- Original TPQE path ----
             else:
-                bad_learn_R = None
-                bad_learn_N = None
-            # Use MFMP-aligned features for both training and inference when self.use_mfmp=True
-            q_R, q_N = compute_combined_quality(
-                x1, x2,
-                featR_mfmp, featN_mfmp,  # MFMP output (training) or backbone (inference)
-                self.training,
-                bad_learn_R=bad_learn_R,
-                bad_learn_N=bad_learn_N,
-                w_learned_train=0.15 if self.coen_use_learned_qmap else 0.0,
-                w_img_train=0.55 if self.coen_use_image_prior else 0.0,
-                w_disagree_train=0.30 if self.coen_use_disagreement else 0.0,
-                w_learned_eval=0.05 if self.coen_use_learned_qmap else 0.0,
-                w_img_eval=0.70 if self.coen_use_image_prior else 0.0,
-                w_disagree_eval=0.25 if self.coen_use_disagreement else 0.0
-            )
-            if self.training and not hasattr(self, "_debug_qmap_printed"):
-                print("[Patch-CoEN] q_R:", q_R.shape, "q_N:", q_N.shape)
-                print("[Patch-CoEN] featR:", featR.shape, "featT:", featT.shape)
-                self._debug_qmap_printed = True
-            q_R_sample = patch_quality_to_scalar(q_R)
-            q_N_sample = patch_quality_to_scalar(q_N)
+                if self.coen_use_learned_qmap:
+                    bad_logit_R = self.qmap_head_R(featR_mfmp[:, 1:, :])  # [B,196,1]
+                    bad_logit_N = self.qmap_head_N(featN_mfmp[:, 1:, :])  # [B,196,1]
 
-            self._coen_qR = q_R_sample.detach().mean()
-            self._coen_qN = q_N_sample.detach().mean()
+                    bad_learn_R = torch.sigmoid(bad_logit_R)  # [B,196,1]
+                    bad_learn_N = torch.sigmoid(bad_logit_N)  # [B,196,1]
+                    # H2 debug
+                    if self.training and not hasattr(self, "_debug_h2_qmap_printed"):
+                        print("\n[H2 DEBUG] ===== qmap head check =====")
+                        if flare_label is None:
+                            print("[H2 DEBUG] flare_label: None")
+                        else:
+                            print("[H2 DEBUG] flare_label shape:", flare_label.shape)
+                            print("[H2 DEBUG] flare_label dtype:", flare_label.dtype)
+                            print("[H2 DEBUG] flare_label unique:",
+                                  torch.unique(flare_label.detach().cpu()))
+                            print("[H2 DEBUG] flare_label mean:",
+                                  flare_label.float().detach().mean().item())
+                        print("[H2 DEBUG] bad_logit_R mean/min/max:",
+                              bad_logit_R.detach().mean().item(),
+                              bad_logit_R.detach().min().item(),
+                              bad_logit_R.detach().max().item())
+                        print("[H2 DEBUG] bad_logit_N mean/min/max:",
+                              bad_logit_N.detach().mean().item(),
+                              bad_logit_N.detach().min().item(),
+                              bad_logit_N.detach().max().item())
+                        print("[H2 DEBUG] bad_learn_R mean/min/max:",
+                              bad_learn_R.detach().mean().item(),
+                              bad_learn_R.detach().min().item(),
+                              bad_learn_R.detach().max().item())
+                        print("[H2 DEBUG] bad_learn_N mean/min/max:",
+                              bad_learn_N.detach().mean().item(),
+                              bad_learn_N.detach().min().item(),
+                              bad_learn_N.detach().max().item())
+                        print("[H2 DEBUG] ===========================\n")
+                        self._debug_h2_qmap_printed = True
+                    # qmap aux loss
+                    if self.training and flare_label is not None and self.use_qmap_aux_loss:
+                        target = flare_label.float().view(-1, 1)  # [B,1]
+                        bad_prob_R = bad_learn_R.squeeze(-1)      # [B,196]
+                        bad_prob_N = bad_learn_N.squeeze(-1)
+                        bad_logit_R_2d = bad_logit_R.squeeze(-1)  # [B,196]
+                        bad_logit_N_2d = bad_logit_N.squeeze(-1)
+                        k = max(1, int(bad_logit_R_2d.size(1) * 0.10))
+                        pred_logit_R = bad_logit_R_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
+                        pred_logit_N = bad_logit_N_2d.topk(k, dim=1, largest=True).values.mean(dim=1, keepdim=True)
+                        pos_mask = target.squeeze(1) > 0.5
+                        neg_mask = target.squeeze(1) <= 0.5
+                        loss_items = []
+                        if pos_mask.any():
+                            pos_target = torch.ones_like(pred_logit_R[pos_mask])
+                            loss_pos_R = F.binary_cross_entropy_with_logits(
+                                pred_logit_R[pos_mask], pos_target)
+                            loss_pos_N = F.binary_cross_entropy_with_logits(
+                                pred_logit_N[pos_mask], pos_target)
+                            loss_items.append(0.5 * (loss_pos_R + loss_pos_N))
+                        if neg_mask.any():
+                            neg_target = torch.zeros_like(pred_logit_R[neg_mask])
+                            loss_neg_R = F.binary_cross_entropy_with_logits(
+                                pred_logit_R[neg_mask], neg_target)
+                            loss_neg_N = F.binary_cross_entropy_with_logits(
+                                pred_logit_N[neg_mask], neg_target)
+                            loss_items.append(0.3 * 0.5 * (loss_neg_R + loss_neg_N))
+                        if len(loss_items) > 0:
+                            bce_balanced = sum(loss_items)
+                        else:
+                            bce_balanced = bad_prob_R.mean() * 0.0
+                        sparse_R = bad_prob_R.mean()
+                        sparse_N = bad_prob_N.mean()
+                        self._qmap_aux_loss = bce_balanced + 0.01 * (sparse_R + sparse_N)
+                else:
+                    bad_learn_R = None
+                    bad_learn_N = None
 
-            self._coen_qR_log = float(self._coen_qR.item())
-            self._coen_qN_log = float(self._coen_qN.item())
-            
-            # 保存最近一个 batch，用于 q_map 可视化
-            self._last_q_R_map = q_R.detach()
-            self._last_q_N_map = q_N.detach()
-            self._last_img_R = x1.detach()
-            self._last_img_N = x2.detach()
+                # compute_combined_quality (only in original TPQE path)
+                q_R, q_N = compute_combined_quality(
+                    x1, x2,
+                    featR_mfmp, featN_mfmp,
+                    self.training,
+                    bad_learn_R=bad_learn_R,
+                    bad_learn_N=bad_learn_N,
+                    w_learned_train=0.15 if self.coen_use_learned_qmap else 0.0,
+                    w_img_train=0.55 if self.coen_use_image_prior else 0.0,
+                    w_disagree_train=0.30 if self.coen_use_disagreement else 0.0,
+                    w_learned_eval=0.05 if self.coen_use_learned_qmap else 0.0,
+                    w_img_eval=0.70 if self.coen_use_image_prior else 0.0,
+                    w_disagree_eval=0.25 if self.coen_use_disagreement else 0.0
+                )
+                if self.training and not hasattr(self, "_debug_qmap_printed"):
+                    print("[Patch-CoEN] q_R:", q_R.shape, "q_N:", q_N.shape)
+                    print("[Patch-CoEN] featR:", featR.shape, "featT:", featT.shape)
+                    self._debug_qmap_printed = True
+                q_R_sample = patch_quality_to_scalar(q_R)
+                q_N_sample = patch_quality_to_scalar(q_N)
+
+                self._coen_qR = q_R_sample.detach().mean()
+                self._coen_qN = q_N_sample.detach().mean()
+                self._coen_qR_log = float(self._coen_qR.item())
+                self._coen_qN_log = float(self._coen_qN.item())
+                self._last_q_R_map = q_R.detach()
+                self._last_q_N_map = q_N.detach()
+                self._last_img_R = x1.detach()
+                self._last_img_N = x2.detach()
         else:
             q_R = None
             q_N = None
         
-        
-
-        # Save pre-fusion features for peer reference (both use originals)
+        # Save pre-fusion features for peer reference
         featR_in = featR
         featN_in = featN
         
@@ -546,7 +564,6 @@ class CLIPFACENet(nn.Module):
             score_N = self.classifier_N(bn_N)
             score_T = self.classifier_T(bn_T)
             
-            # MFMP: label classification for R and N cross-attended features
             if self.use_mfmp:
                 cls_R_mfmp = featR_mfmp[:, 0]
                 cls_N_mfmp = featN_mfmp[:, 0]
@@ -583,9 +600,7 @@ class CLIPFACENet(nn.Module):
 
             candidates = [k]
 
-            # 兼容两种 CLIP key:
-            # old: backbone_rgb.vision.embeddings...
-            # new: backbone_rgb.vision.vision_model.embeddings...
+            # 兼容两种 CLIP key
             if ".vision.vision_model." in k:
                 candidates.append(k.replace(".vision.vision_model.", ".vision."))
             elif ".vision." in k:

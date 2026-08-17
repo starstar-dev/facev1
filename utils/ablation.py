@@ -11,6 +11,8 @@ FULL_ABLATION = {
     "coen_use_image_prior": True,
     "coen_use_disagreement": True,
     "use_qmap_aux_loss": True,
+    "use_global_static_fusion": False,
+    "use_tir_anchor": True,
 }
 
 
@@ -34,6 +36,11 @@ ABLATION_CONFIGS = {
         coen_use_image_prior=False,
         coen_use_disagreement=False,
         use_qmap_aux_loss=False,
+    ),
+    "global_static_fusion": _exp(
+        "Global Static Fusion: replace TPQE with learned scalar per modality",
+        use_global_static_fusion=True,
+        # use_coen_lite 保持 True (从 FULL_ABLATION 继承)，确保 loss gate 正常工作
     ),
     "full": _exp("Full model (same data setting as original train_exp G)"),
     "original_G": _exp("Original train_exp G equivalent: full model + flare sampler"),
@@ -70,6 +77,10 @@ ABLATION_CONFIGS = {
         "Full w/o SupCon",
         use_supcon=False,
     ),
+    "wo_tir_anchor": _exp(
+        "w/o TIR Anchor: remove TI as fixed reference, RGB↔NI mutual only",
+        use_tir_anchor=False,
+    ),
 }
 
 
@@ -105,6 +116,9 @@ def apply_ablation_config(model, name):
     model.coen_use_image_prior = cfg["coen_use_image_prior"]
     model.coen_use_disagreement = cfg["coen_use_disagreement"]
     model.use_qmap_aux_loss = cfg["use_qmap_aux_loss"]
+    model.use_global_static_fusion = cfg["use_global_static_fusion"]
+    model.fusion_R.use_tir_anchor = cfg["use_tir_anchor"]
+    model.fusion_N.use_tir_anchor = cfg["use_tir_anchor"]
     return name, cfg
 
 

@@ -348,6 +348,10 @@ def do_train_amp(cfg, model, center_criterion, train_loader, val_loader, optimiz
             logger.info("mAP: {:.1%}".format(mAP))
             for r in [1, 5, 10]:
                 logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
+           
+            
+            
+            
             if mAP >= best_index['mAP']:
                 best_index['mAP'] = mAP
                 best_index['Rank-1'] = cmc[0]
@@ -392,4 +396,38 @@ def do_inference(cfg, model, val_loader, num_query):
     logger.info("mAP: {:.1%}".format(mAP))
     for r in [1, 5, 10]:
         logger.info("CMC curve, Rank-{:<3}:{:.1%}".format(r, cmc[r - 1]))
+     # ---- E4: Hard/Normal subset evaluation (same features) ----
+    if subset_split is not None:
+        import numpy as np
+        from utils.metrics import eval_func
+        hard_path = os.path.join(subset_split, "hard_queries.txt")
+        normal_path = os.path.join(subset_split, "normal_queries.txt")
+        if os.path.exists(hard_path) and os.path.exists(normal_path):
+            with open(hard_path) as f:
+                hard_idx = [int(l.strip()) for l in f if l.strip()]
+            with open(normal_path) as f:
+                normal_idx = [int(l.strip()) for l in f if l.strip()]
+
+            q_pids = np.array(pids[:num_query])
+            g_pids = np.array(pids[num_query:])
+            q_camids = np.array(camids[:num_query])
+            g_camids = np.array(camids[num_query:])
+
+            _, mAP_hard, _ = eval_func(
+                distmat[hard_idx], q_pids[hard_idx], g_pids,
+                q_camids[hard_idx], g_camids)
+            _, mAP_normal, _ = eval_func(
+                distmat[normal_idx], q_pids[normal_idx], g_pids,
+                q_camids[normal_idx], g_camids)
+
+            Nh, Nn = len(hard_idx), len(normal_idx)
+            mAP_weighted = (Nh * mAP_hard + Nn * mAP_normal) / (Nh + Nn)
+            logger.info("--- E4 Hard/Normal Subset ---")
+            logger.info("Hard  ({}): mAP={:.1%}".format(Nh, mAP_hard))
+            logger.info("Normal({}): mAP={:.1%}".format(Nn, mAP_normal))
+            logger.info("Weighted Avg:  mAP={:.1%}".format(mAP_weighted))
+            logger.info("Full - Weighted: {:.4%}".format(mAP - mAP_weighted))
+    # ------------------------------------------------------------
+    
+    
     return cmc[0], cmc[4]

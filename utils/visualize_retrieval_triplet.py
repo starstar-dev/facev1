@@ -2,18 +2,51 @@ import os
 import sys
 import argparse
 import numpy as np
-import torch
 import matplotlib.pyplot as plt
 from PIL import Image
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT_DIR)
 
-from config import cfg
-from datasets import make_dataloader
-from model.clip_facenet import CLIPFACENet
-from utils.ablation import ABLATION_CONFIGS, apply_ablation_config
-from utils.metrics import euclidean_distance
+# ICASSP uses a two-column page. 7.16 in is the usable width of a full-width
+# figure in the official template. Keeping the Matplotlib canvas at the final
+# insertion size prevents fonts from being scaled down by LaTeX.
+PAPER_WIDTH_IN = 7.16
+PAPER_HEIGHT_IN = 3.25
+PAPER_DPI = 600
+CORRECT_COLOR = "#009E73"    # color-blind-safe green
+INCORRECT_COLOR = "#D55E00"  # color-blind-safe vermilion
+
+PAPER_RC = {
+    "font.family": "serif",
+    "font.serif": ["Times New Roman", "Times", "STIXGeneral", "DejaVu Serif"],
+    "font.size": 8,
+    "axes.titlesize": 8.5,
+    "axes.labelsize": 8.5,
+    "pdf.fonttype": 42,
+    "ps.fonttype": 42,
+    "mathtext.fontset": "stix",
+    "savefig.facecolor": "white",
+}
+
+
+def save_figure_pdf_and_png(fig, save_path):
+    """Save vector text/lines for LaTeX and a 600-dpi raster fallback."""
+    stem, _ = os.path.splitext(save_path)
+    pdf_path = f"{stem}.pdf"
+    png_path = f"{stem}.png"
+
+    parent = os.path.dirname(os.path.abspath(stem))
+    os.makedirs(parent, exist_ok=True)
+
+    save_kwargs = {
+        "bbox_inches": "tight",
+        "pad_inches": 0.02,
+        "facecolor": "white",
+    }
+    fig.savefig(pdf_path, **save_kwargs)
+    fig.savefig(png_path, dpi=PAPER_DPI, **save_kwargs)
+    return pdf_path, png_path
 
 
 def load_triplet_images(path_item):
@@ -34,6 +67,13 @@ def collect_features(cfg, weight_path, exp_name):
     - camids
     - image paths
     """
+    import torch
+
+    from datasets import make_dataloader
+    from model.clip_facenet import CLIPFACENet
+    from utils.ablation import apply_ablation_config
+    from utils.metrics import euclidean_distance
+
     _, _, val_loader, num_query, num_classes, _ = make_dataloader(cfg)
 
     model = CLIPFACENet(num_classes=num_classes, cfg=cfg)
@@ -113,66 +153,93 @@ def draw_triplet_retrieval_case(
     q_path,
     gallery_paths,
     gallery_labels,
-    title,
+    title=None,
     topk=5,
 ):
     """
     Draw:
-        Query | Top-1 | Top-2 | ... | Top-k
+        Query | Rank-1 | Rank-2 | ... | Rank-k
     rows:
-        VIS
-        NI
-        TH
+        RGB
+        NIR
+        TIR
     """
     cols = topk + 1
     rows = 3
 
-    fig, axes = plt.subplots(rows, cols, figsize=(2.0 * cols, 5.8))
-    modal_names = ["VIS", "NI", "TH"]
+    if len(gallery_paths) < topk or len(gallery_labels) < topk:
+        raise ValueError("gallery_paths and gallery_labels must contain topk items")
 
-    q_imgs = load_triplet_images(q_path)
+    with plt.rc_context(PAPER_RC):
+        fig, axes = plt.subplots(
+            rows,
+            cols,
+            figsize=(PAPER_WIDTH_IN, PAPER_HEIGHT_IN),
+            squeeze=False,
+        )
 
-    for r in range(rows):
-        ax = axes[r, 0]
-        ax.imshow(q_imgs[r])
-        ax.set_xticks([])
-        ax.set_yticks([])
-
-        if r == 0:
-            ax.set_title("Query", fontsize=11)
-
-        ax.set_ylabel(modal_names[r], fontsize=11)
-
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_edgecolor("black")
-            spine.set_linewidth(2)
-
-    for c in range(topk):
-        g_imgs = load_triplet_images(gallery_paths[c])
-        is_correct = gallery_labels[c]
-        color = "green" if is_correct else "red"
+        # Use the terminology used in the paper instead of dataset-specific
+        # abbreviations. The caption should explain the border colors.
+        modal_names = ["RGB", "NIR", "TIR"]
+        q_imgs = load_triplet_images(q_path)
 
         for r in range(rows):
-            ax = axes[r, c + 1]
-            ax.imshow(g_imgs[r])
+            ax = axes[r, 0]
+            ax.imshow(q_imgs[r], interpolation="lanczos")
             ax.set_xticks([])
             ax.set_yticks([])
+            ax.set_anchor("C")
 
             if r == 0:
-                ax.set_title(f"Top-{c + 1}", color=color, fontsize=11)
+                ax.set_title("Query", pad=3)
+
+            ax.set_ylabel(modal_names[r], labelpad=2)
 
             for spine in ax.spines.values():
                 spine.set_visible(True)
-                spine.set_edgecolor(color)
-                spine.set_linewidth(3)
+                spine.set_edgecolor("#222222")
+                spine.set_linewidth(0.9)
 
-    fig.suptitle(title, fontsize=13)
-    plt.tight_layout(rect=[0, 0, 1, 0.94])
+        for c in range(topk):
+            g_imgs = load_triplet_images(gallery_paths[c])
+            is_correct = bool(gallery_labels[c])
+            color = CORRECT_COLOR if is_correct else INCORRECT_COLOR
 
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    plt.savefig(save_path, dpi=300)
-    plt.close(fig)
+            for r in range(rows):
+                ax = axes[r, c + 1]
+                ax.imshow(g_imgs[r], interpolation="lanczos")
+                ax.set_xticks([])
+                ax.set_yticks([])
+                ax.set_anchor("C")
+
+                if r == 0:
+                    ax.set_title(f"Rank-{c + 1}", color=color, pad=3)
+
+                for spine in ax.spines.values():
+                    spine.set_visible(True)
+                    spine.set_edgecolor(color)
+                    spine.set_linewidth(1.2)
+
+        # A suptitle repeats the paper caption and makes the panels smaller.
+        # It is still available for multi-panel figures, but disabled by the
+        # callers below for the standalone paper figure.
+        top = 0.90
+        if title:
+            fig.suptitle(title, fontsize=9, y=0.995)
+            top = 0.86
+
+        fig.subplots_adjust(
+            left=0.055,
+            right=0.995,
+            bottom=0.025,
+            top=top,
+            wspace=0.075,
+            hspace=0.075,
+        )
+
+        output_paths = save_figure_pdf_and_png(fig, save_path)
+        plt.close(fig)
+        return output_paths
 
 
 def visualize_ours_only(result, save_dir, topk=5, num_cases=10):
@@ -213,7 +280,7 @@ def visualize_ours_only(result, save_dir, topk=5, num_cases=10):
             q_path=q_paths[qi],
             gallery_paths=gallery_paths,
             gallery_labels=labels,
-            title=f"Ours retrieval result | PID {q_pids[qi]}",
+            title=None,
             topk=topk,
         )
 
@@ -289,7 +356,7 @@ def visualize_baseline_wrong_ours_correct(
             q_path=q_paths[qi],
             gallery_paths=gallery_paths,
             gallery_labels=labels,
-            title=f"Baseline wrong, Ours correct | PID {q_pids[qi]}",
+            title=None,
             topk=topk,
         )
 
@@ -301,6 +368,9 @@ def visualize_baseline_wrong_ours_correct(
 
 
 def main():
+    from config import cfg
+    from utils.ablation import ABLATION_CONFIGS
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument(

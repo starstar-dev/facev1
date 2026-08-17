@@ -10,7 +10,7 @@ MODEL:
   TRANSFORMER_TYPE: 'clip_vit_base_patch16_224'
   STRIDE_SIZE: [16, 16]
   SHIFT_NUM: 8
-  RE_ARRANGE: True
+  RE_ARRANGE: False
   MCLOSS: False
   FCE: False
   DIST_TRAIN: False
